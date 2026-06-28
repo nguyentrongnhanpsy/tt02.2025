@@ -5,113 +5,129 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khung năng lực số cho người học (Thông tư 02/2025)</title>
     
-    <!-- Tailwind CSS (Giao diện) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     
-    <!-- Babel (Trình biên dịch JSX trực tiếp trên trình duyệt) -->
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <!-- Custom CSS (Hiệu ứng) -->
     <style>
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none; 
-            scrollbar-width: none; 
-        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
         .animate-fade-in-up {
-            animation: fadeInUp 0.5s ease-out forwards;
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+        
+        .animate-shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        .animate-bounce-slight {
+            animation: bounceSlight 0.4s ease-out both;
+        }
+
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        @keyframes bounceSlight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 font-sans text-gray-800 antialiased">
-    
+<body class="bg-gradient-to-br from-indigo-50 via-white to-cyan-50 font-sans text-gray-800 antialiased selection:bg-blue-200">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useCallback } = React;
 
-        // --- ICONS SET (Thay thế Lucide bằng Inline SVG để chạy Offline) ---
+        // --- ICONS SET ---
         const IconBookOpen = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>;
         const IconLayers = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 12 12 17 22 12"></polyline><polyline points="2 17 12 22 22 17"></polyline></svg>;
         const IconGrid = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>;
         const IconFileText = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>;
         const IconCheckCircle = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
         const IconChevronDown = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
-        const IconChevronUp = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>;
-        const IconDownload = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>;
+        const IconInfo = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>;
+        const IconBulb = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1.51.7 2.76 1.5 3.5.76.76 1.23 1.52 1.41 2.5"></path></svg>;
+        
+        // --- MISSING ICONS RESTORED ---
         const IconAward = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>;
+        const IconDownload = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>;
         const IconAlertCircle = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>;
         const IconRefreshCcw = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>;
         const IconPlay = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>;
 
-        // --- HỆ THỐNG ÂM THANH (WEB AUDIO API) ---
-        // Sử dụng API để tạo âm thanh trực tiếp mà không cần tải file ngoài
-        const playHappySound = () => {
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return;
-                const ctx = new AudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'sine';
-                
-                // Tạo một chuỗi nốt nhạc vui nhộn (Ting - ting - ting)
-                osc.frequency.setValueAtTime(523.25, ctx.currentTime); // Nốt C5
-                osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // Nốt E5
-                osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // Nốt G5
-                osc.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.3); // Nốt C6
-                
-                gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-                
-                osc.start(ctx.currentTime);
-                osc.stop(ctx.currentTime + 0.5);
-            } catch (e) { console.log("Audio not supported", e); }
+        // --- AUDIO ENGINE (Web Audio API) ---
+        let audioCtx = null;
+        const initAudio = () => {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         };
 
-        const playSadSound = () => {
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return;
-                const ctx = new AudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'sawtooth';
-                
-                // Tạo hiệu ứng âm thanh trượt xuống (Womp womp...)
-                osc.frequency.setValueAtTime(300, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.6);
-                
-                gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
-                
-                osc.start(ctx.currentTime);
-                osc.stop(ctx.currentTime + 0.6);
-            } catch (e) { console.log("Audio not supported", e); }
+        const playTone = (freq, type, time, duration, vol) => {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + time);
+            
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime + time);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + time + duration);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + time);
+            osc.stop(audioCtx.currentTime + time + duration);
         };
 
-        // --- DATA STRUCTURES (Dựa trên tài liệu Thông tư 02/2025/TT-BGDĐT) ---
+        const SOUNDS = {
+            click: () => {
+                initAudio();
+                playTone(600, 'sine', 0, 0.05, 0.1);
+            },
+            correct: () => {
+                initAudio();
+                playTone(523.25, 'sine', 0, 0.1, 0.2); // C5
+                playTone(659.25, 'sine', 0.1, 0.1, 0.2); // E5
+                playTone(783.99, 'sine', 0.2, 0.1, 0.2); // G5
+                playTone(1046.50, 'sine', 0.3, 0.3, 0.2); // C6
+            },
+            wrong: () => {
+                initAudio();
+                playTone(300, 'sawtooth', 0, 0.2, 0.2);
+                playTone(250, 'sawtooth', 0.2, 0.4, 0.2);
+            }
+        };
 
+        // --- DATA STRUCTURES (Đã bổ sung Chi tiết Năng lực) ---
         const TERMS = [
           { id: 1, term: "An sinh số", desc: "Trạng thái cân bằng giữa việc sử dụng công nghệ số và sức khỏe tinh thần, thể chất của người dùng trong việc sử dụng phương tiện kỹ thuật số." },
           { id: 2, term: "Bắt nạt trên mạng", desc: "Những hành vi có chủ đích xấu được tiến hành bởi một người hoặc một nhóm người lên một cá nhân thông qua không gian mạng." },
@@ -139,71 +155,66 @@
             id: 1, name: "1. Khai thác dữ liệu và thông tin",
             desc: "Tập trung vào khả năng tìm kiếm, lọc, đánh giá và quản lý dữ liệu, thông tin, nội dung số; xác định nguồn tin cậy.",
             sub: [
-              { id: "1.1", name: "Duyệt, tìm kiếm và lọc dữ liệu, thông tin và nội dung số", example: "Biết dùng từ khóa chính xác trên Google để tìm tài liệu học tập.", matrix: ["Tìm kiếm cơ bản (có HD)", "Tìm kiếm cơ bản (độc lập)", "Tìm kiếm theo quy trình", "Tổ chức chiến lược tìm kiếm", "Đề xuất kỹ thuật nâng cao"] },
-              { id: "1.2", name: "Đánh giá dữ liệu, thông tin và nội dung số", example: "Phân biệt được tin giả trên mạng xã hội và tin chính thống.", matrix: ["Phát hiện độ tin cậy chung", "Xác định nguồn tin cơ bản", "Phân tích, so sánh nguồn", "Đánh giá nhiều nguồn phức tạp", "Kiểm chứng, phản biện thông tin"] },
-              { id: "1.3", name: "Quản lý dữ liệu, thông tin và nội dung số", example: "Lưu trữ tài liệu có cấu trúc thư mục trên Google Drive.", matrix: ["Lưu trữ cơ bản (có HD)", "Phân loại file cơ bản", "Tổ chức thư mục logic", "Quản lý dữ liệu đa nền tảng", "Hệ thống quản lý dữ liệu cá nhân"] }
+              { id: "1.1", name: "Duyệt, tìm kiếm và lọc dữ liệu, thông tin và nội dung số", detail: "Biết cách diễn đạt nhu cầu thông tin, sử dụng công cụ tìm kiếm phù hợp để truy cập dữ liệu. Xây dựng chiến lược tìm kiếm cá nhân, tinh chỉnh kết quả và sử dụng kỹ thuật lọc nâng cao để tiếp cận thông tin mục tiêu nhanh chóng.", example: "Học sinh dùng từ khóa trong ngoặc kép (\"\") hoặc dấu trừ (-) trên Google để tìm đúng tài liệu tham khảo cho bài văn.", matrix: ["Tìm kiếm cơ bản (có HD)", "Tìm kiếm cơ bản (độc lập)", "Tìm kiếm theo quy trình", "Tổ chức chiến lược tìm kiếm", "Đề xuất kỹ thuật nâng cao"] },
+              { id: "1.2", name: "Đánh giá dữ liệu, thông tin và nội dung số", detail: "Khả năng phân tích, so sánh và đánh giá một cách có tư duy phản biện mức độ uy tín, tính chính xác và độ tin cậy của các nguồn dữ liệu, thông tin trực tuyến trước khi sử dụng.", example: "Nhận biết được một bài đăng Facebook giật tít là tin giả (fake news) bằng cách kiểm tra lại trên các trang báo điện tử chính thống.", matrix: ["Phát hiện độ tin cậy chung", "Xác định nguồn tin cơ bản", "Phân tích, so sánh nguồn", "Đánh giá nhiều nguồn phức tạp", "Kiểm chứng, phản biện thông tin"] },
+              { id: "1.3", name: "Quản lý dữ liệu, thông tin và nội dung số", detail: "Biết cách lưu trữ, tổ chức, phân loại và truy xuất dữ liệu trong các môi trường số đa dạng. Hiểu về các biện pháp sao lưu dự phòng và quy trình sắp xếp thông tin có cấu trúc.", example: "Học sinh tạo các thư mục lưu trữ rõ ràng trên máy tính hoặc Google Drive theo từng môn học (Toán, Văn, Anh) và tải bài tập lên đúng vị trí.", matrix: ["Lưu trữ cơ bản (có HD)", "Phân loại file cơ bản", "Tổ chức thư mục logic", "Quản lý dữ liệu đa nền tảng", "Hệ thống quản lý dữ liệu cá nhân"] }
             ]
           },
           {
             id: 2, name: "2. Giao tiếp và hợp tác trong môi trường số",
             desc: "Tương tác, giao tiếp và cộng tác hiệu quả qua công nghệ số; thể hiện hành vi số chuẩn mực.",
             sub: [
-              { id: "2.1", name: "Tương tác qua công nghệ số", example: "Sử dụng Zalo/Teams để trao đổi bài tập nhóm.", matrix: ["Dùng công cụ cơ bản", "Tương tác nhóm nhỏ", "Lựa chọn công cụ phù hợp", "Quản lý nhóm lớn", "Tối ưu hóa tương tác"] },
-              { id: "2.2", name: "Chia sẻ thông qua công nghệ số", example: "Chia sẻ link Google Doc cho bạn bè cùng sửa chung.", matrix: ["Chia sẻ file cơ bản", "Chia sẻ với nhóm", "Chia sẻ có phân quyền", "Quản trị chia sẻ đa nền tảng", "Xây dựng chiến lược chia sẻ"] },
-              { id: "2.3", name: "Tham gia các hoạt động công dân số", example: "Tham gia các khảo sát trực tuyến của nhà trường.", matrix: ["Nhận diện dịch vụ công", "Sử dụng dịch vụ có HD", "Tự dùng dịch vụ công", "Tham gia cộng đồng số", "Đóng góp tích cực xã hội số"] },
-              { id: "2.4", name: "Hợp tác thông qua công nghệ số", example: "Cùng làm slide thuyết trình trực tuyến trên Canva.", matrix: ["Tham gia hợp tác (có HD)", "Hợp tác nhiệm vụ nhỏ", "Tổ chức nhóm hợp tác", "Lãnh đạo nhóm trực tuyến", "Đánh giá hiệu quả hợp tác"] },
-              { id: "2.5", name: "Phép xã giao trên mạng (Netiquette)", example: "Tôn trọng người khác khi bình luận, không dùng từ ngữ xúc phạm.", matrix: ["Biết quy tắc cơ bản", "Tuân thủ quy tắc giao tiếp", "Ứng xử chuẩn mực", "Xử lý xung đột cơ bản", "Xây dựng văn hóa mạng"] },
-              { id: "2.6", name: "Quản lý danh tính số", example: "Chỉ chia sẻ thông tin cần thiết trên trang Facebook cá nhân.", matrix: ["Nhận thức danh tính số", "Bảo vệ thông tin cá nhân", "Quản lý hình ảnh cá nhân", "Xây dựng danh tiếng trực tuyến", "Bảo vệ và tối ưu danh tính"] }
+              { id: "2.1", name: "Tương tác qua công nghệ số", detail: "Sử dụng đa dạng các phương tiện giao tiếp số (email, chat, video call) để tương tác. Lựa chọn định dạng giao tiếp phù hợp với đối tượng và bối cảnh (trang trọng hoặc thân mật).", example: "Biết dùng Zalo để nhắn tin nhóm lớp nhanh, và dùng Email với ngôn ngữ trang trọng để gửi bài tập cho Thầy/Cô.", matrix: ["Dùng công cụ cơ bản", "Tương tác nhóm nhỏ", "Lựa chọn công cụ phù hợp", "Quản lý nhóm lớn", "Tối ưu hóa tương tác"] },
+              { id: "2.2", name: "Chia sẻ thông qua công nghệ số", detail: "Chủ động chia sẻ dữ liệu, thông tin, kiến thức số cho người khác thông qua các nền tảng phù hợp. Hiểu biết về trích dẫn và các phương pháp kiểm soát quyền chia sẻ.", example: "Chia sẻ link Google Doc hoặc Canva cho nhóm nhưng chỉ cấp quyền \"View\" (Xem) cho người ngoài và \"Edit\" (Sửa) cho thành viên nhóm.", matrix: ["Chia sẻ file cơ bản", "Chia sẻ với nhóm", "Chia sẻ có phân quyền", "Quản trị chia sẻ đa nền tảng", "Xây dựng chiến lược chia sẻ"] },
+              { id: "2.3", name: "Tham gia các hoạt động công dân số", detail: "Sử dụng công nghệ số để tham gia vào đời sống xã hội, sử dụng các dịch vụ số công cộng (dịch vụ công, chính phủ điện tử) và trao quyền phát triển cá nhân.", example: "Sử dụng ứng dụng VNeID, hoặc tham gia làm các bài khảo sát trực tuyến của nhà trường và thành phố tổ chức.", matrix: ["Nhận diện dịch vụ công", "Sử dụng dịch vụ có HD", "Tự dùng dịch vụ công", "Tham gia cộng đồng số", "Đóng góp tích cực xã hội số"] },
+              { id: "2.4", name: "Hợp tác thông qua công nghệ số", detail: "Sử dụng công cụ kỹ thuật số hỗ trợ quy trình làm việc nhóm, đồng sáng tạo nội dung trực tuyến, quản lý tiến độ và đánh giá kết quả hợp tác từ xa.", example: "Sử dụng Padlet hoặc Miro để các bạn trong nhóm cùng dán ý tưởng (brainstorming) làm dự án môn học cùng lúc.", matrix: ["Tham gia hợp tác (có HD)", "Hợp tác nhiệm vụ nhỏ", "Tổ chức nhóm hợp tác", "Lãnh đạo nhóm trực tuyến", "Đánh giá hiệu quả hợp tác"] },
+              { id: "2.5", name: "Phép xã giao trên mạng (Netiquette)", detail: "Nhận thức và áp dụng các chuẩn mực hành vi, quy tắc ứng xử (Netiquette) khi tương tác trực tuyến. Tôn trọng sự đa dạng văn hóa và xử lý tình huống giao tiếp nhạy cảm.", example: "Tôn trọng ý kiến người khác khi bình luận trên diễn đàn trường, tuyệt đối không dùng ngôn từ xúc phạm hoặc chửi bậy trên mạng.", matrix: ["Biết quy tắc cơ bản", "Tuân thủ quy tắc giao tiếp", "Ứng xử chuẩn mực", "Xử lý xung đột cơ bản", "Xây dựng văn hóa mạng"] },
+              { id: "2.6", name: "Quản lý danh tính số", detail: "Tạo lập, quản lý nhiều dạng danh tính số khác nhau. Bảo vệ uy tín, danh tiếng trực tuyến và nhận thức được tác động lâu dài của 'dấu chân số' cá nhân.", example: "Cài đặt chế độ riêng tư trên Facebook cá nhân để người lạ không thể lấy hình ảnh của mình vào mục đích xấu.", matrix: ["Nhận thức danh tính số", "Bảo vệ thông tin cá nhân", "Quản lý hình ảnh cá nhân", "Xây dựng danh tiếng trực tuyến", "Bảo vệ và tối ưu danh tính"] }
             ]
           },
           {
             id: 3, name: "3. Sáng tạo nội dung số",
             desc: "Khả năng tạo mới, chỉnh sửa, tích hợp nội dung số, hiểu biết về bản quyền và lập trình.",
             sub: [
-              { id: "3.1", name: "Phát triển nội dung số", example: "Tạo video ngắn hoặc thiết kế ấn phẩm truyền thông học tập.", matrix: ["Tạo nội dung đơn giản", "Tạo nội dung đa phương tiện", "Thiết kế nội dung sáng tạo", "Sản xuất nội dung chuyên nghiệp", "Phát triển nội dung đột phá"] },
-              { id: "3.2", name: "Tích hợp và chỉnh sửa lại nội dung số", example: "Chỉnh sửa video bằng Capcut hoặc làm mới bài thuyết trình.", matrix: ["Chỉnh sửa cơ bản", "Phối hợp nhiều nguồn", "Tái cấu trúc nội dung", "Tích hợp nâng cao", "Đổi mới nội dung đa nền tảng"] },
-              { id: "3.3", name: "Bản quyền và giấy phép", example: "Trích dẫn đúng nguồn khi lấy ảnh, tài liệu từ Internet.", matrix: ["Nhận thức bản quyền", "Tuân thủ quy tắc cơ bản", "Áp dụng giấy phép (Creative Commons)", "Xử lý vi phạm bản quyền", "Quản lý bản quyền hệ thống"] },
-              { id: "3.4", name: "Lập trình", example: "Viết mã bằng Scratch hoặc tạo web/app Python cơ bản.", matrix: ["Làm quen lệnh đơn giản", "Viết đoạn mã ngắn", "Xây dựng chương trình nhỏ", "Phát triển ứng dụng cơ bản", "Tối ưu hóa và debug code"] }
+              { id: "3.1", name: "Phát triển nội dung số", detail: "Tạo và sáng tạo các nội dung số ở nhiều định dạng khác nhau (văn bản, hình ảnh, âm thanh, video). Thể hiện ý tưởng qua công nghệ số bằng nhiều công cụ hiện đại.", example: "Tự quay, biên tập một video ngắn thuyết trình về Lịch sử địa phương để nộp làm bài tập cuối kỳ.", matrix: ["Tạo nội dung đơn giản", "Tạo nội dung đa phương tiện", "Thiết kế nội dung sáng tạo", "Sản xuất nội dung chuyên nghiệp", "Phát triển nội dung đột phá"] },
+              { id: "3.2", name: "Tích hợp và chỉnh sửa lại nội dung số", detail: "Cải thiện, sửa đổi hoặc kết hợp các thông tin và nội dung số có sẵn thành một kiến thức/sản phẩm số mới mẻ, mang dấu ấn cá nhân.", example: "Tải các hình ảnh/video từ mạng về (không vi phạm bản quyền) sau đó dùng Capcut để lồng tiếng và hiệu ứng mới.", matrix: ["Chỉnh sửa cơ bản", "Phối hợp nhiều nguồn", "Tái cấu trúc nội dung", "Tích hợp nâng cao", "Đổi mới nội dung đa nền tảng"] },
+              { id: "3.3", name: "Bản quyền và giấy phép", detail: "Hiểu sâu về các quy định bản quyền, quyền sở hữu trí tuệ liên quan đến dữ liệu số. Biết cách sử dụng và áp dụng các loại giấy phép mở (như Creative Commons).", example: "Biết tìm và lấy hình ảnh, nhạc nền miễn phí trên Pixabay hoặc Freepik thay vì lấy tùy tiện từ Google Images, có ghi nguồn rõ ràng.", matrix: ["Nhận thức bản quyền", "Tuân thủ quy tắc cơ bản", "Áp dụng CC", "Xử lý vi phạm bản quyền", "Quản lý bản quyền hệ thống"] },
+              { id: "3.4", name: "Lập trình", detail: "Lập kế hoạch, thiết kế thuật toán và viết các đoạn mã lệnh để xây dựng chương trình, ứng dụng phần mềm giải quyết một vấn đề cụ thể.", example: "Học sinh tiểu học dùng Scratch để kéo thả làm game mê cung, học sinh cấp 3 dùng Python để viết công cụ tính toán tự động.", matrix: ["Làm quen lệnh đơn giản", "Viết đoạn mã ngắn", "Xây dựng chương trình nhỏ", "Phát triển ứng dụng cơ bản", "Tối ưu hóa và debug code"] }
             ]
           },
           {
             id: 4, name: "4. Bảo vệ và an toàn số",
             desc: "Đảm bảo an toàn thiết bị, dữ liệu cá nhân, sức khỏe tinh thần và bảo vệ môi trường.",
             sub: [
-              { id: "4.1", name: "Bảo vệ thiết bị", example: "Cài đặt mật khẩu thiết bị mạnh và phần mềm diệt virus.", matrix: ["Nhận diện rủi ro", "Áp dụng bảo vệ cơ bản", "Thiết lập bảo mật thiết bị", "Quản lý an ninh mạng cá nhân", "Đánh giá, khắc phục rủi ro"] },
-              { id: "4.2", name: "Bảo vệ dữ liệu cá nhân và quyền riêng tư", example: "Không chia sẻ mã OTP hoặc mật khẩu cho bất kỳ ai trên mạng.", matrix: ["Bảo mật thông tin cơ bản", "Quản lý quyền riêng tư", "Thiết lập bảo vệ nâng cao", "Xử lý rò rỉ dữ liệu", "Phân tích bảo mật toàn diện"] },
-              { id: "4.3", name: "Bảo vệ sức khỏe và an sinh số", example: "Giới hạn thời gian dùng điện thoại để tránh hại mắt và nghiện game.", matrix: ["Nhận thức rủi ro sức khỏe", "Cân bằng thời gian online", "Phòng tránh nghiện game/mạng", "Tạo thói quen số lành mạnh", "Bảo vệ an sinh số cộng đồng"] },
-              { id: "4.4", name: "Bảo vệ môi trường", example: "Tái chế pin, tắt nguồn máy tính khi không sử dụng để tiết kiệm năng lượng.", matrix: ["Nhận thức tác động môi trường", "Tiết kiệm năng lượng", "Tái chế rác thải điện tử", "Áp dụng giải pháp số xanh", "Lan tỏa ý thức môi trường"] }
+              { id: "4.1", name: "Bảo vệ thiết bị", detail: "Cài đặt và cập nhật các biện pháp bảo vệ thiết bị số khỏi rủi ro vật lý và môi trường mạng (Mã độc, virus, hacker). Nhận thức về các mối nguy hiểm mạng thường gặp.", example: "Cài đặt mật khẩu thiết bị, không cắm các USB lạ vào máy tính cá nhân để tránh lây nhiễm virus.", matrix: ["Nhận diện rủi ro", "Áp dụng bảo vệ cơ bản", "Thiết lập bảo mật thiết bị", "Quản lý an ninh mạng cá nhân", "Đánh giá, khắc phục rủi ro"] },
+              { id: "4.2", name: "Bảo vệ dữ liệu cá nhân và quyền riêng tư", detail: "Bảo vệ thông tin cá nhân và dữ liệu riêng tư trong môi trường mạng. Hiểu cách dữ liệu được hệ thống thu thập, xử lý và phân chia sẻ cho bên thứ ba.", example: "Không bao giờ chia sẻ mã OTP (One Time Password), mật khẩu, hoặc thông tin CCCD cho người lạ nhắn tin trên mạng.", matrix: ["Bảo mật thông tin cơ bản", "Quản lý quyền riêng tư", "Thiết lập bảo vệ nâng cao", "Xử lý rò rỉ dữ liệu", "Phân tích bảo mật toàn diện"] },
+              { id: "4.3", name: "Bảo vệ sức khỏe và an sinh số", detail: "Nhận thức về rủi ro sức khỏe thể chất (mắt, cơ xương) và tinh thần (căng thẳng, nghiện mạng) khi sử dụng thiết bị số. Thiết lập sự cân bằng.", example: "Sử dụng tính năng nhắc nhở nghỉ ngơi sau mỗi 45 phút nhìn màn hình máy tính, giới hạn giờ chơi game/lướt Tiktok mỗi ngày.", matrix: ["Nhận thức rủi ro sức khỏe", "Cân bằng thời gian online", "Phòng tránh nghiện game/mạng", "Tạo thói quen số lành mạnh", "Bảo vệ an sinh số cộng đồng"] },
+              { id: "4.4", name: "Bảo vệ môi trường", detail: "Nhận thức các tác động tích cực và tiêu cực của công nghệ đối với môi trường tự nhiên. Tái chế và quản lý rác thải điện tử bền vững.", example: "Thu gom pin cũ nộp cho điểm tái chế, sử dụng chế độ Tiết kiệm điện (Sleep Mode) cho máy tính khi không sử dụng.", matrix: ["Nhận thức tác động môi trường", "Tiết kiệm năng lượng", "Tái chế rác thải điện tử", "Áp dụng giải pháp số xanh", "Lan tỏa ý thức môi trường"] }
             ]
           },
           {
             id: 5, name: "5. Giải quyết vấn đề trong môi trường số",
             desc: "Phát hiện, xử lý lỗi kĩ thuật, sử dụng công nghệ để sáng tạo và giải quyết vấn đề.",
             sub: [
-              { id: "5.1", name: "Giải quyết các trục trặc kỹ thuật", example: "Khởi động lại modem khi mất mạng, xử lý lỗi phần cứng nhỏ.", matrix: ["Nhờ hỗ trợ khi có lỗi", "Khắc phục lỗi cơ bản", "Tự sửa lỗi phổ biến", "Chẩn đoán lỗi hệ thống", "Giải quyết lỗi phức tạp"] },
-              { id: "5.2", name: "Xác định nhu cầu và phản hồi công nghệ", example: "Biết chọn dùng Word để gõ văn bản thay vì dùng Excel.", matrix: ["Xác định nhu cầu cơ bản", "Chọn công cụ phù hợp", "Đánh giá công cụ đang dùng", "Tối ưu hóa lựa chọn", "Đề xuất giải pháp công nghệ"] },
-              { id: "5.3", name: "Sử dụng công nghệ số một cách sáng tạo", example: "Dùng sơ đồ tư duy trực tuyến (Mindmeister/Miro) để làm bài tập.", matrix: ["Thử nghiệm công cụ mới", "Áp dụng vào học tập", "Sáng tạo nội dung học", "Thiết kế giải pháp mới", "Dẫn dắt sáng tạo số"] },
-              { id: "5.4", name: "Xác định khiếm khuyết về kỹ năng số", example: "Tự học thêm cách làm PowerPoint trên YouTube khi thấy mình chưa giỏi.", matrix: ["Nhận ra điểm yếu (có HD)", "Tự nhận thức kỹ năng", "Lập kế hoạch tự học", "Liên tục cập nhật kiến thức", "Hướng dẫn người khác"] }
+              { id: "5.1", name: "Giải quyết các trục trặc kỹ thuật", detail: "Nhận diện, đánh giá và khắc phục độc lập hoặc phối hợp giải quyết các lỗi phần cứng, phần mềm từ cơ bản đến phức tạp trong quá trình sử dụng.", example: "Khi máy tính mất âm thanh, biết cách tự vào phần Settings/Audio hoặc khởi động lại thiết bị (Restart) để khắc phục.", matrix: ["Nhờ hỗ trợ khi có lỗi", "Khắc phục lỗi cơ bản", "Tự sửa lỗi phổ biến", "Chẩn đoán lỗi hệ thống", "Giải quyết lỗi phức tạp"] },
+              { id: "5.2", name: "Xác định nhu cầu và phản hồi công nghệ", detail: "Xác định rõ vấn đề cần giải quyết, từ đó đánh giá và lựa chọn công cụ/phần mềm số tối ưu nhất đáp ứng nhu cầu đó.", example: "Khi cần lập bảng điểm chi tiết tự tính tổng, học sinh chủ động chọn mở phần mềm Excel thay vì dùng Word.", matrix: ["Xác định nhu cầu cơ bản", "Chọn công cụ phù hợp", "Đánh giá công cụ đang dùng", "Tối ưu hóa lựa chọn", "Đề xuất giải pháp công nghệ"] },
+              { id: "5.3", name: "Sử dụng công nghệ số một cách sáng tạo", detail: "Sử dụng bộ công cụ số để sáng tạo ra các quy trình mới, tham gia vào sự đổi mới và giải quyết các bài toán học tập/cuộc sống bằng tư duy thiết kế.", example: "Sử dụng ứng dụng Vẽ Sơ đồ tư duy (Mindmap) trực tuyến để tóm tắt kiến thức nguyên cả chương Lịch sử thay vì viết chữ truyền thống.", matrix: ["Thử nghiệm công cụ mới", "Áp dụng vào học tập", "Sáng tạo nội dung học", "Thiết kế giải pháp mới", "Dẫn dắt sáng tạo số"] },
+              { id: "5.4", name: "Xác định khiếm khuyết về kỹ năng số", detail: "Hiểu được năng lực số hiện tại của bản thân, xác định nhu cầu học tập để cập nhật, nâng cao kỹ năng nhằm theo kịp sự phát triển của công nghệ.", example: "Thấy các bạn làm slide PowerPoint đẹp, tự lên Youtube gõ từ khóa \"Hướng dẫn làm PowerPoint chuyên nghiệp\" để tự học thêm.", matrix: ["Nhận ra điểm yếu (có HD)", "Tự nhận thức kỹ năng", "Lập kế hoạch tự học", "Liên tục cập nhật kiến thức", "Hướng dẫn người khác"] }
             ]
           },
           {
             id: 6, name: "6. Ứng dụng trí tuệ nhân tạo (AI)",
             desc: "Hiểu, sử dụng và đánh giá công cụ AI một cách có đạo đức, trách nhiệm.",
             sub: [
-              { id: "6.1", name: "Hiểu biết về trí tuệ nhân tạo", example: "Biết ChatGPT hay Gemini là một hệ thống AI chứ không phải con người thật.", matrix: ["Nhận diện AI cơ bản", "Giải thích cách hoạt động đơn giản", "Phân tích đặc điểm AI", "So sánh các hệ thống AI", "Đánh giá chuyên sâu mô hình AI"] },
-              { id: "6.2", name: "Sử dụng và ứng dụng trí tuệ nhân tạo", example: "Dùng AI để lấy ý tưởng hoặc tóm tắt một bài báo dài thành ý chính.", matrix: ["Sử dụng AI (có HD)", "Tự dùng AI cơ bản", "Ứng dụng AI vào học tập", "Tối ưu prompt (câu lệnh)", "Tích hợp AI vào dự án"] },
-              { id: "6.3", name: "Đánh giá trí tuệ nhân tạo", example: "Hiểu rằng kết quả từ AI có thể có thiên kiến hoặc sai sót, cần phải kiểm tra lại.", matrix: ["Nhận diện vật dụng dùng AI", "Kiểm tra kết quả sinh ra", "Phân tích hiệu quả AI giải quyết vấn đề", "Đánh giá độ chính xác, tin cậy", "Phân tích thiên kiến, đề xuất cải tiến"] }
+              { id: "6.1", name: "Hiểu biết về trí tuệ nhân tạo", detail: "Nhận biết các hệ thống AI, hiểu rõ khả năng và giới hạn của chúng. Có nhận thức sâu sắc rằng AI mô phỏng trí tuệ con người dựa trên dữ liệu lớn.", example: "Nhận biết được trợ lý ảo Siri trên iPhone hay ChatGPT đều là các hệ thống AI hoạt động nhờ học máy, không phải con người thật.", matrix: ["Nhận diện AI cơ bản", "Giải thích cách hoạt động đơn giản", "Phân tích đặc điểm AI", "So sánh các hệ thống AI", "Đánh giá chuyên sâu mô hình AI"] },
+              { id: "6.2", name: "Sử dụng và ứng dụng trí tuệ nhân tạo", detail: "Sử dụng hiệu quả các công cụ AI (đặc biệt là AI tạo sinh) trong công việc, học tập hằng ngày thông qua việc tối ưu hóa câu lệnh (Prompt).", example: "Biết nhập câu lệnh rõ ràng (Prompt) vào Gemini: \"Hãy tóm tắt bài báo này trong 3 gạch đầu dòng, ngôn ngữ dễ hiểu cho học sinh tiểu học\".", matrix: ["Sử dụng AI (có HD)", "Tự dùng AI cơ bản", "Ứng dụng AI vào học tập", "Tối ưu prompt (câu lệnh)", "Tích hợp AI vào dự án"] },
+              { id: "6.3", name: "Đánh giá trí tuệ nhân tạo", detail: "Phân tích kết quả do AI tạo ra một cách có phê phán, hiểu rõ các rủi ro về đạo đức, thiên kiến (bias) và vi phạm quyền riêng tư khi dùng hệ thống tự động.", example: "Khi nhờ AI viết một bài luận, học sinh luôn tự kiểm tra lại các số liệu lịch sử mà AI đưa ra vì biết AI có thể 'ảo giác' hoặc sai sót.", matrix: ["Nhận diện vật dụng dùng AI", "Kiểm tra kết quả sinh ra", "Phân tích hiệu quả AI giải quyết vấn đề", "Đánh giá độ chính xác, tin cậy", "Phân tích thiên kiến, đề xuất cải tiến"] }
             ]
           }
         ];
 
-        const SUBJECTS = [
-          "Toán", "Ngữ văn", "Ngoại ngữ", "Giáo dục công dân", "Lịch sử", "Địa lí", 
-          "Khoa học tự nhiên", "Vật lí", "Hóa học", "Sinh học", "Công nghệ", "Tin học", 
-          "Giáo dục thể chất", "Nghệ thuật (Âm nhạc, Mĩ thuật)", "Hoạt động trải nghiệm, hướng nghiệp"
-        ];
-
-        // Trích xuất từ Bộ câu hỏi
+        // --- MOCK DATA FOR TAB 4 & 5 ---
+        const SUBJECTS = ["Toán", "Ngữ văn", "Ngoại ngữ", "Giáo dục công dân", "Lịch sử", "Địa lí", "Khoa học tự nhiên", "Vật lí", "Hóa học", "Sinh học", "Công nghệ", "Tin học", "Giáo dục thể chất", "Nghệ thuật", "Hoạt động trải nghiệm"];
         const QUIZ_DATA = [
           { id: 1, q: "Thông tư 02/2025/TT-BGDĐT quy định Khung năng lực số cho người học có hiệu lực thi hành từ ngày nào?", options: ["A. 24/01/2025", "B. 11/03/2025", "C. 27/06/2025", "D. 01/09/2025"], ans: 1, exp: "Thông tư này có hiệu lực thi hành kể từ ngày 11 tháng 3 năm 2025." },
           { id: 2, q: "Khung năng lực số cho người học bao gồm bao nhiêu miền năng lực và năng lực thành phần?", options: ["A. 5 miền, 20 thành phần", "B. 6 miền, 24 thành phần", "C. 6 miền, 19 thành phần", "D. 8 miền, 24 thành phần"], ans: 1, exp: "Khung năng lực số bao gồm 6 miền năng lực với 24 năng lực thành phần." },
@@ -238,20 +249,26 @@
         ];
 
         // --- UI COMPONENTS ---
-
-        const AccordionItem = ({ title, children }) => {
+        const AccordionItem = ({ title, children, isNested }) => {
           const [isOpen, setIsOpen] = useState(false);
+          const toggle = () => {
+              SOUNDS.click();
+              setIsOpen(!isOpen);
+          };
+          
           return (
-            <div className="mb-4 bg-white/70 backdrop-blur-md rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300">
+            <div className={`mb-4 overflow-hidden transition-all duration-300 ${isNested ? 'bg-white rounded-xl shadow-sm border border-gray-100 hover:border-blue-200 hover:shadow-md' : 'glass-card rounded-2xl hover:-translate-y-1'}`}>
               <button 
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full px-6 py-4 flex justify-between items-center text-left focus:outline-none hover:bg-white/90"
+                onClick={toggle}
+                className={`w-full px-6 py-4 flex justify-between items-center text-left focus:outline-none transition-colors ${isOpen ? (isNested ? 'bg-blue-50/50' : 'bg-white/90') : 'hover:bg-white/80'}`}
               >
-                <span className="font-semibold text-gray-800 text-lg">{title}</span>
-                {isOpen ? <IconChevronUp className="text-blue-500 w-5 h-5" /> : <IconChevronDown className="text-gray-400 w-5 h-5" />}
+                <span className={`font-semibold ${isNested ? 'text-blue-800 text-md' : 'text-gray-800 text-lg'}`}>{title}</span>
+                <span className={`transform transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-500' : 'text-gray-400'}`}>
+                    <IconChevronDown className="w-5 h-5" />
+                </span>
               </button>
               <div className={`transition-all duration-500 ease-in-out ${isOpen ? 'max-h-[1500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="px-6 pb-5 text-gray-600 leading-relaxed border-t border-gray-100 pt-4">
+                <div className={`px-6 pb-5 text-gray-700 leading-relaxed border-t border-gray-100/50 pt-4 ${isNested ? 'text-sm' : ''}`}>
                   {children}
                 </div>
               </div>
@@ -262,6 +279,13 @@
         function App() {
           const [activeTab, setActiveTab] = useState(1);
 
+          const handleTabSwitch = (id) => {
+              if (activeTab !== id) {
+                  SOUNDS.click();
+                  setActiveTab(id);
+              }
+          };
+
           const TABS = [
             { id: 1, icon: IconBookOpen, label: "Từ điển Thuật ngữ" },
             { id: 2, icon: IconLayers, label: "Tổng quan Năng lực" },
@@ -271,37 +295,36 @@
           ];
 
           return (
-            <div className="min-h-screen">
-              {/* Header */}
-              <header className="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-white shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
-                  <div className="flex items-center gap-3 w-full lg:w-auto justify-center lg:justify-start">
-                    <div className="bg-blue-600 p-2 rounded-xl">
-                      <IconAward className="text-white w-6 h-6" />
+            <div className="min-h-screen pb-12">
+              <header className="glass-card sticky top-0 z-50 border-b border-white shadow-sm mb-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col xl:flex-row justify-between items-center gap-4">
+                  <div className="flex items-center gap-4 w-full xl:w-auto justify-center xl:justify-start">
+                    <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-2.5 rounded-xl shadow-lg shadow-blue-500/30">
+                      <IconAward className="text-white w-7 h-7" />
                     </div>
                     <div>
-                      <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-700">
-                        Khung năng lực số cho người học (TT02)
+                      <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-cyan-600 tracking-tight">
+                        Khung năng lực số (TT02)
                       </h1>
-                      <p className="text-xs text-gray-500 font-medium">Hệ thống phân tích Khung năng lực số (TT 02/2025/TT-BGDĐT)</p>
+                      <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-0.5">Hệ thống phân tích thông minh 2026</p>
                     </div>
                   </div>
                   
-                  {/* Navigation */}
-                  <nav className="flex space-x-1 bg-gray-100/50 p-1 rounded-xl overflow-x-auto max-w-full no-scrollbar w-full lg:w-auto justify-start lg:justify-end">
+                  <nav className="flex space-x-2 bg-gray-100/60 p-1.5 rounded-2xl overflow-x-auto max-w-full no-scrollbar w-full xl:w-auto justify-start xl:justify-end shadow-inner">
                     {TABS.map(tab => {
                         const Icon = tab.icon;
+                        const isActive = activeTab === tab.id;
                         return (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                                activeTab === tab.id 
-                                    ? 'bg-white text-blue-600 shadow-md scale-105' 
-                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                                onClick={() => handleTabSwitch(tab.id)}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
+                                isActive 
+                                    ? 'bg-white text-blue-700 shadow-md transform scale-[1.02] ring-1 ring-black/5' 
+                                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-200/50 active:scale-95'
                                 }`}
                             >
-                                <Icon className="w-4 h-4" />
+                                <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : ''}`} />
                                 {tab.label}
                             </button>
                         );
@@ -310,9 +333,8 @@
                 </div>
               </header>
 
-              {/* Main Content Area */}
-              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-xl border border-white p-6 md:p-8 min-h-[70vh]">
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="glass-card rounded-[2rem] p-6 md:p-10 min-h-[75vh] animate-fade-in-up">
                   {activeTab === 1 && <TabDictionary />}
                   {activeTab === 2 && <TabOverview />}
                   {activeTab === 3 && <TabMatrix />}
@@ -325,25 +347,26 @@
         }
 
         // --- TAB COMPONENTS ---
-
         function TabDictionary() {
           return (
             <div className="animate-fade-in-up">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Bảng tra cứu 19 Thuật ngữ</h2>
-              <p className="text-gray-500 mb-8">Trích dẫn theo Điều 2, Thông tư 02/2025/TT-BGDĐT. Nhấn vào từng mục để xem chi tiết.</p>
+              <div className="mb-8 border-l-4 border-blue-500 pl-4">
+                  <h2 className="text-3xl font-extrabold text-gray-800 mb-2">Từ điển Thuật ngữ Chuyên ngành</h2>
+                  <p className="text-gray-500 font-medium">Trích dẫn chuẩn xác theo Điều 2, Thông tư 02/2025/TT-BGDĐT.</p>
+              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
                 <div className="space-y-1">
                   {TERMS.slice(0, 10).map(item => (
                     <AccordionItem key={item.id} title={`STT ${item.id}. ${item.term}`}>
-                      <p className="text-gray-700">{item.desc}</p>
+                      <p className="text-gray-700 text-[15px]">{item.desc}</p>
                     </AccordionItem>
                   ))}
                 </div>
                 <div className="space-y-1">
                   {TERMS.slice(10).map(item => (
                     <AccordionItem key={item.id} title={`STT ${item.id}. ${item.term}`}>
-                      <p className="text-gray-700">{item.desc}</p>
+                      <p className="text-gray-700 text-[15px]">{item.desc}</p>
                     </AccordionItem>
                   ))}
                 </div>
@@ -355,21 +378,44 @@
         function TabOverview() {
           return (
             <div className="animate-fade-in-up">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Tổng quan 6 Miền Năng lực</h2>
-              <p className="text-gray-500 mb-8">Chi tiết các miền và các năng lực thành phần kèm ví dụ minh họa thực tiễn cho học sinh.</p>
+              <div className="mb-8 border-l-4 border-indigo-500 pl-4">
+                  <h2 className="text-3xl font-extrabold text-gray-800 mb-2">Tổng quan 6 Miền & 24 Năng lực</h2>
+                  <p className="text-gray-500 font-medium">Phân tích chuyên sâu định nghĩa và ví dụ thực tiễn cho từng thành phần.</p>
+              </div>
               
-              <div className="space-y-6">
+              <div className="grid gap-8">
                 {DOMAINS.map(domain => (
-                  <div key={domain.id} className="bg-gradient-to-r from-blue-50 to-transparent p-6 rounded-2xl border border-blue-100">
-                    <h3 className="text-xl font-bold text-blue-800 mb-2">{domain.name}</h3>
-                    <p className="text-gray-600 mb-4 italic">{domain.desc}</p>
+                  <div key={domain.id} className="bg-white rounded-[1.5rem] shadow-lg shadow-indigo-100/50 border border-indigo-50 p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
+                    <div className="flex items-start gap-4 mb-6">
+                        <div className="bg-indigo-100 text-indigo-700 text-xl font-bold w-12 h-12 flex items-center justify-center rounded-2xl shrink-0">
+                            {domain.id}
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-extrabold text-gray-800 mb-2">{domain.name.substring(3)}</h3>
+                            <p className="text-gray-500 text-sm md:text-base">{domain.desc}</p>
+                        </div>
+                    </div>
                     
-                    <div className="space-y-3 pl-0 md:pl-4">
+                    <div className="space-y-4 pl-0 md:pl-16">
                       {domain.sub.map(sub => (
-                        <AccordionItem key={sub.id} title={`${sub.id}. ${sub.name}`}>
-                          <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-                            <span className="font-semibold text-green-700 block mb-1">💡 Ví dụ thực tiễn:</span>
-                            <span className="text-green-800">{sub.example}</span>
+                        <AccordionItem key={sub.id} title={`${sub.id}. ${sub.name}`} isNested={true}>
+                          <div className="space-y-4 pt-2">
+                              {/* Thông tin chi tiết */}
+                              <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex gap-3">
+                                  <IconInfo className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                                  <div>
+                                      <span className="font-semibold text-blue-900 block mb-1">Mô tả năng lực:</span>
+                                      <span className="text-blue-800/80 leading-relaxed">{sub.detail}</span>
+                                  </div>
+                              </div>
+                              {/* Ví dụ thực tiễn */}
+                              <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 flex gap-3">
+                                  <IconBulb className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                                  <div>
+                                      <span className="font-semibold text-emerald-900 block mb-1">Ví dụ với Học sinh:</span>
+                                      <span className="text-emerald-800/80 leading-relaxed">{sub.example}</span>
+                                  </div>
+                              </div>
                           </div>
                         </AccordionItem>
                       ))}
@@ -384,30 +430,34 @@
         function TabMatrix() {
           return (
             <div className="animate-fade-in-up">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Ma trận chi tiết các bậc năng lực (Bậc 1 - 5)</h2>
-              <p className="text-gray-500 mb-8">Ánh xạ chi tiết hành vi học sinh tương ứng với từng cấp học (Dựa trên File 3456 và Bảng Mapping).</p>
+              <div className="mb-8 border-l-4 border-cyan-500 pl-4">
+                  <h2 className="text-3xl font-extrabold text-gray-800 mb-2">Ma trận Đánh giá (Bậc 1 - 5)</h2>
+                  <p className="text-gray-500 font-medium">Lộ trình phát triển năng lực số tương ứng các cấp học phổ thông.</p>
+              </div>
               
-              <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border border-gray-200">
-                <table className="w-full text-left min-w-[1000px]">
+              <div className="overflow-x-auto bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100">
+                <table className="w-full text-left min-w-[1200px]">
                   <thead>
-                    <tr className="bg-gray-50 text-gray-700 border-b border-gray-200">
-                      <th className="p-4 font-semibold w-1/5">Năng lực thành phần</th>
-                      <th className="p-4 font-semibold w-32 text-center text-blue-700 bg-blue-50">Bậc 1<br/><span className="text-xs font-normal">(Lớp 1-3)</span></th>
-                      <th className="p-4 font-semibold w-32 text-center text-indigo-700 bg-indigo-50">Bậc 2<br/><span className="text-xs font-normal">(Lớp 4-5)</span></th>
-                      <th className="p-4 font-semibold w-32 text-center text-purple-700 bg-purple-50">Bậc 3<br/><span className="text-xs font-normal">(Lớp 6-7)</span></th>
-                      <th className="p-4 font-semibold w-32 text-center text-pink-700 bg-pink-50">Bậc 4<br/><span className="text-xs font-normal">(Lớp 8-9)</span></th>
-                      <th className="p-4 font-semibold w-32 text-center text-rose-700 bg-rose-50">Bậc 5<br/><span className="text-xs font-normal">(Lớp 10-12)</span></th>
+                    <tr className="bg-slate-50 text-slate-700 border-b border-gray-200">
+                      <th className="p-5 font-bold w-1/5 uppercase text-xs tracking-wider">Năng lực thành phần</th>
+                      <th className="p-5 w-40 text-center"><div className="bg-blue-100 text-blue-800 py-2 rounded-lg font-bold">Bậc 1<div className="text-[10px] font-normal uppercase mt-1">Lớp 1-3</div></div></th>
+                      <th className="p-5 w-40 text-center"><div className="bg-indigo-100 text-indigo-800 py-2 rounded-lg font-bold">Bậc 2<div className="text-[10px] font-normal uppercase mt-1">Lớp 4-5</div></div></th>
+                      <th className="p-5 w-40 text-center"><div className="bg-purple-100 text-purple-800 py-2 rounded-lg font-bold">Bậc 3<div className="text-[10px] font-normal uppercase mt-1">Lớp 6-7</div></div></th>
+                      <th className="p-5 w-40 text-center"><div className="bg-pink-100 text-pink-800 py-2 rounded-lg font-bold">Bậc 4<div className="text-[10px] font-normal uppercase mt-1">Lớp 8-9</div></div></th>
+                      <th className="p-5 w-40 text-center"><div className="bg-rose-100 text-rose-800 py-2 rounded-lg font-bold">Bậc 5<div className="text-[10px] font-normal uppercase mt-1">Lớp 10-12</div></div></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-sm">
                     {DOMAINS.map(domain => (
                       <React.Fragment key={domain.id}>
-                        <tr className="bg-gray-100/50"><td colSpan="6" className="p-3 font-bold text-gray-800">{domain.name}</td></tr>
-                        {domain.sub.map(sub => (
-                          <tr key={sub.id} className="hover:bg-blue-50/50 transition-colors">
-                            <td className="p-4 font-medium text-gray-700">{sub.id}. {sub.name}</td>
+                        <tr className="bg-gradient-to-r from-slate-50 to-white">
+                            <td colSpan="6" className="p-4 font-extrabold text-gray-800 text-base">{domain.name}</td>
+                        </tr>
+                        {domain.sub.map((sub, sIdx) => (
+                          <tr key={sub.id} className="hover:bg-blue-50/30 transition-colors group">
+                            <td className="p-5 font-semibold text-slate-700 border-r border-gray-50">{sub.id}. {sub.name}</td>
                             {sub.matrix.map((desc, idx) => (
-                              <td key={idx} className="p-4 text-gray-600 align-top border-l border-gray-50">{desc}</td>
+                              <td key={idx} className="p-5 text-gray-600 align-top border-l border-gray-50 group-hover:text-gray-900">{desc}</td>
                             ))}
                           </tr>
                         ))}
@@ -421,38 +471,18 @@
         }
 
         function TabLessonPlan() {
-          const [formData, setFormData] = useState({
-            grade: '6',
-            subject: SUBJECTS[0],
-            lessonName: '',
-            content: '',
-            template: '5512',
-            nlSo: '1.1'
-          });
+          const [formData, setFormData] = useState({ grade: '6', subject: SUBJECTS[0], lessonName: '', content: '', template: '5512' });
 
           const exportToWord = () => {
+            SOUNDS.click();
             if(!formData.lessonName) {
-              alert("Vui lòng nhập Tên bài học trước khi xuất file!");
-              return;
+                alert("Vui lòng nhập Tên bài học trước khi xuất file!");
+                return;
             }
-            
-            // Thuật toán tạo File Word dạng Document từ HTML
-            const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-              <head>
-                <meta charset='utf-8'>
-                <title>Kế hoạch bài dạy</title>
-                <style>
-                  body { font-family: 'Times New Roman', serif; font-size: 14pt; }
-                  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                  th, td { border: 1px solid black; padding: 5px; text-align: left; }
-                  .center { text-align: center; }
-                  .bold { font-weight: bold; }
-                </style>
-              </head><body>`;
+            const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Kế hoạch bài dạy</title><style>body { font-family: 'Times New Roman', serif; font-size: 14pt; } table { width: 100%; border-collapse: collapse; margin-bottom: 20px; } th, td { border: 1px solid black; padding: 5px; text-align: left; } .center { text-align: center; } .bold { font-weight: bold; }</style></head><body>`;
             const footer = "</body></html>";
             const htmlContent = document.getElementById('lesson-plan-preview').innerHTML;
             const finalHtml = header + htmlContent + footer;
-            
             const blob = new Blob(['\ufeff', finalHtml], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -465,20 +495,16 @@
 
           return (
             <div className="animate-fade-in-up flex flex-col lg:flex-row gap-8">
-              {/* Form Area */}
-              <div className="w-full lg:w-1/3 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                  <IconFileText className="text-blue-500 w-6 h-6"/> Khởi tạo Giáo án
+              <div className="w-full lg:w-1/3 bg-white p-6 rounded-[2rem] shadow-lg shadow-gray-200/50 border border-gray-100">
+                <h2 className="text-xl font-extrabold text-gray-800 mb-6 flex items-center gap-2">
+                  <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><IconFileText className="w-5 h-5"/></div> Khởi tạo Giáo án
                 </h2>
                 
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Mẫu KHBD</label>
-                    <select 
-                      className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      value={formData.template}
-                      onChange={e => setFormData({...formData, template: e.target.value})}
-                    >
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mẫu Kế hoạch bài dạy</label>
+                    <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none"
+                      value={formData.template} onChange={e => {SOUNDS.click(); setFormData({...formData, template: e.target.value})}}>
                       <option value="5512">Công văn 5512 (THCS/THPT)</option>
                       <option value="2345">Công văn 2345 (Tiểu học)</option>
                     </select>
@@ -486,67 +512,50 @@
 
                   <div className="flex gap-4">
                     <div className="w-1/3">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Khối lớp</label>
-                      <select 
-                        className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        value={formData.grade}
-                        onChange={e => setFormData({...formData, grade: e.target.value})}
-                      >
-                        {[...Array(12)].map((_, i) => <option key={i+1} value={i+1}>Khối {i+1}</option>)}
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Khối</label>
+                      <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                        value={formData.grade} onChange={e => {SOUNDS.click(); setFormData({...formData, grade: e.target.value})}}>
+                        {[...Array(12)].map((_, i) => <option key={i+1} value={i+1}>Lớp {i+1}</option>)}
                       </select>
                     </div>
                     <div className="w-2/3">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Môn học</label>
-                      <select 
-                        className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        value={formData.subject}
-                        onChange={e => setFormData({...formData, subject: e.target.value})}
-                      >
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Môn học</label>
+                      <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                        value={formData.subject} onChange={e => {SOUNDS.click(); setFormData({...formData, subject: e.target.value})}}>
                         {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tên bài học</label>
-                    <input 
-                      type="text" 
-                      placeholder="Nhập tên bài dạy..."
-                      className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      value={formData.lessonName}
-                      onChange={e => setFormData({...formData, lessonName: e.target.value})}
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tên bài học</label>
+                    <input type="text" placeholder="Nhập tên bài dạy..." className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
+                      value={formData.lessonName} onChange={e => setFormData({...formData, lessonName: e.target.value})}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nội dung cốt lõi</label>
-                    <textarea 
-                      rows="3"
-                      placeholder="Nhập nội dung tóm tắt..."
-                      className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      value={formData.content}
-                      onChange={e => setFormData({...formData, content: e.target.value})}
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nội dung cốt lõi</label>
+                    <textarea rows="3" placeholder="Tóm tắt nội dung..." className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
+                      value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})}
                     ></textarea>
                   </div>
 
-                  <button 
-                    onClick={exportToWord}
-                    className="w-full py-3 mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-                  >
+                  <button onClick={exportToWord} className="w-full py-3.5 mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30 hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2">
                     <IconDownload className="w-5 h-5"/> Xuất File Word (.doc)
                   </button>
                 </div>
               </div>
 
-              {/* Preview Area */}
-              <div className="w-full lg:w-2/3 bg-white p-8 rounded-2xl shadow-inner border border-gray-200 overflow-y-auto max-h-[70vh]">
-                <div className="flex justify-between items-center border-b pb-2 mb-4">
-                  <span className="text-gray-400 font-medium text-sm">Bản xem trước (Preview)</span>
-                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Auto-Sync</span>
+              <div className="w-full lg:w-2/3 bg-white p-8 rounded-[2rem] shadow-inner border border-gray-200 overflow-y-auto max-h-[75vh]">
+                <div className="flex justify-between items-center border-b border-gray-100 pb-3 mb-6">
+                  <span className="text-gray-500 font-bold uppercase tracking-wider text-sm flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> Bản xem trước Word
+                  </span>
                 </div>
                 
-                {/* Hidden/Preview Div that will be exported to Word */}
-                <div id="lesson-plan-preview" className="font-serif text-[13pt] text-black">
+                <div id="lesson-plan-preview" className="font-serif text-[13pt] text-black bg-white">
+                  {/* Nội dung mẫu giữ nguyên như trước để đảm bảo chuẩn form Word */}
                   <div style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: '20px' }}>
                     KẾ HOẠCH BÀI DẠY MÔN {formData.subject.toUpperCase()} LỚP {formData.grade}<br/>
                     (Theo Công văn {formData.template})
@@ -554,16 +563,13 @@
                   <div style={{ fontWeight: 'bold' }}>TÊN BÀI DẠY: {formData.lessonName || '........................................'}</div>
                   <div>Môn học/Hoạt động giáo dục: {formData.subject}; lớp: {formData.grade}</div>
                   <div>Thời gian thực hiện: ..... tiết</div>
-                  
                   <div style={{ fontWeight: 'bold', marginTop: '15px' }}>I. YÊU CẦU CẦN ĐẠT</div>
                   <div><span style={{ fontWeight: 'bold' }}>1. Về năng lực đặc thù:</span> Giải quyết nội dung: {formData.content || '........................................'}</div>
                   <div><span style={{ fontWeight: 'bold' }}>2. Về năng lực số (Tích hợp TT02):</span> Học sinh vận dụng các công cụ kỹ thuật số để giải quyết nhiệm vụ học tập.</div>
                   <div><span style={{ fontWeight: 'bold' }}>3. Về phẩm chất:</span> Chăm chỉ, trách nhiệm trong môi trường số.</div>
-
                   <div style={{ fontWeight: 'bold', marginTop: '15px' }}>II. THIẾT BỊ DẠY HỌC VÀ HỌC LIỆU SỐ</div>
                   <div>- Giáo viên: Máy tính, máy chiếu, tài liệu số.</div>
-                  <div>- Học sinh: Thiết bị thông minh (nếu có), tài khoản truy cập.</div>
-
+                  <div>- Học sinh: Thiết bị thông minh, tài khoản truy cập.</div>
                   <div style={{ fontWeight: 'bold', marginTop: '15px' }}>III. TIẾN TRÌNH DẠY HỌC</div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }} border="1">
                     <thead>
@@ -571,28 +577,13 @@
                         <th style={{ padding: '5px', textAlign: 'center' }}>Hoạt động</th>
                         <th style={{ padding: '5px', textAlign: 'center' }}>Mục tiêu</th>
                         <th style={{ padding: '5px', textAlign: 'center' }}>Nội dung/Năng lực số</th>
-                        <th style={{ padding: '5px', textAlign: 'center' }}>Sản phẩm học tập</th>
+                        <th style={{ padding: '5px', textAlign: 'center' }}>Sản phẩm</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td style={{ padding: '5px' }}>1. Mở đầu</td>
-                        <td style={{ padding: '5px' }}>Tạo hứng thú</td>
-                        <td style={{ padding: '5px' }}>Truy cập Quizizz/Kahoot</td>
-                        <td style={{ padding: '5px' }}>Kết quả game</td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: '5px' }}>2. Hình thành KT mới</td>
-                        <td style={{ padding: '5px' }}>Nắm bắt {formData.lessonName}</td>
-                        <td style={{ padding: '5px' }}>Tìm kiếm thông tin (NL 1.1)</td>
-                        <td style={{ padding: '5px' }}>Phiếu học tập/Mindmap số</td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: '5px' }}>3. Luyện tập/Vận dụng</td>
-                        <td style={{ padding: '5px' }}>Thực hành</td>
-                        <td style={{ padding: '5px' }}>Nộp bài qua Google Classroom</td>
-                        <td style={{ padding: '5px' }}>Bài làm hoàn thiện</td>
-                      </tr>
+                      <tr><td style={{ padding: '5px' }}>1. Mở đầu</td><td style={{ padding: '5px' }}>Tạo hứng thú</td><td style={{ padding: '5px' }}>Truy cập Quizizz</td><td style={{ padding: '5px' }}>Kết quả game</td></tr>
+                      <tr><td style={{ padding: '5px' }}>2. Hình thành KT mới</td><td style={{ padding: '5px' }}>Nắm bắt {formData.lessonName}</td><td style={{ padding: '5px' }}>Tìm kiếm thông tin (NL 1.1)</td><td style={{ padding: '5px' }}>Phiếu học tập</td></tr>
+                      <tr><td style={{ padding: '5px' }}>3. Luyện tập/Vận dụng</td><td style={{ padding: '5px' }}>Thực hành</td><td style={{ padding: '5px' }}>Nộp bài qua LMS</td><td style={{ padding: '5px' }}>Bài làm hoàn thiện</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -609,6 +600,7 @@
           const [showResult, setShowResult] = useState(false);
           const [wrongAnswers, setWrongAnswers] = useState([]);
           const [reviewMode, setReviewMode] = useState(false);
+          const [animState, setAnimState] = useState(''); // For correct/wrong animation
 
           const questions = reviewMode ? wrongAnswers : QUIZ_DATA;
           const q = questions[currentQ];
@@ -618,27 +610,34 @@
             setSelectedAns(index);
             setIsAnswered(true);
 
-            // Xử lý khi chọn Đáp án (Có lồng ghép hàm âm thanh)
             if (index === q.ans) {
-              playHappySound(); // Chạy âm thanh vui nhộn khi Đúng
+              SOUNDS.correct();
+              setAnimState('animate-bounce-slight');
               if (!reviewMode) setScore(score + 1);
             } else {
-              playSadSound(); // Chạy âm thanh buồn khi Sai
+              SOUNDS.wrong();
+              setAnimState('animate-shake');
               if (!reviewMode) setWrongAnswers([...wrongAnswers, q]);
             }
+            
+            // Reset animation state after it finishes
+            setTimeout(() => setAnimState(''), 500);
           };
 
           const handleNext = () => {
+            SOUNDS.click();
             if (currentQ < questions.length - 1) {
               setCurrentQ(currentQ + 1);
               setSelectedAns(null);
               setIsAnswered(false);
             } else {
               setShowResult(true);
+              if (score / QUIZ_DATA.length >= 0.8) SOUNDS.correct(); // Extra sound for passing
             }
           };
 
           const restart = () => {
+            SOUNDS.click();
             setCurrentQ(0);
             setScore(0);
             setSelectedAns(null);
@@ -649,6 +648,7 @@
           };
 
           const startReview = () => {
+            SOUNDS.click();
             setCurrentQ(0);
             setSelectedAns(null);
             setIsAnswered(false);
@@ -661,24 +661,24 @@
             const isPass = percent >= 80;
             
             return (
-              <div className="animate-fade-in-up text-center py-10">
-                <div className={`mx-auto w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-xl ${isPass ? 'bg-green-100 text-green-500' : 'bg-red-100 text-red-500'}`}>
-                  {isPass ? <IconAward className="w-12 h-12" /> : <IconAlertCircle className="w-12 h-12" />}
+              <div className="animate-fade-in-up text-center py-16 bg-white rounded-[2rem] shadow-xl shadow-gray-200/50 max-w-3xl mx-auto border border-gray-100">
+                <div className={`mx-auto w-28 h-28 rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl ${isPass ? 'bg-gradient-to-br from-green-400 to-emerald-600 text-white shadow-green-500/40' : 'bg-gradient-to-br from-rose-400 to-red-600 text-white shadow-red-500/40'} animate-bounce-slight`}>
+                  {isPass ? <IconAward className="w-14 h-14" /> : <IconAlertCircle className="w-14 h-14" />}
                 </div>
-                <h2 className="text-3xl font-bold mb-2 text-gray-800">
-                  {isPass ? "Chúc mừng bạn đã hoàn thành xuất sắc!" : "Cần cố gắng thêm nhé!"}
+                <h2 className="text-4xl font-extrabold mb-3 text-gray-800 tracking-tight">
+                  {isPass ? "Tuyệt vời! Hoàn thành xuất sắc!" : "Cần cố gắng thêm nhé!"}
                 </h2>
-                <p className="text-xl text-gray-600 mb-8">
-                  Đúng <span className="font-bold text-blue-600">{score}</span> / {QUIZ_DATA.length} câu ({percent}%)
+                <p className="text-xl text-gray-500 mb-10 font-medium">
+                  Kết quả: <span className={`font-bold text-2xl ${isPass ? 'text-green-500' : 'text-red-500'}`}>{score}</span> / {QUIZ_DATA.length} câu ({percent}%)
                 </p>
 
-                <div className="flex justify-center gap-4">
-                  <button onClick={restart} className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition flex items-center gap-2">
-                    <IconRefreshCcw className="w-5 h-5"/> Làm lại từ đầu
+                <div className="flex justify-center gap-4 flex-wrap px-4">
+                  <button onClick={restart} className="px-8 py-4 bg-gray-100 text-gray-700 rounded-2xl font-bold hover:bg-gray-200 hover:-translate-y-1 transition-all flex items-center gap-2 active:scale-95">
+                    <IconRefreshCcw className="w-5 h-5"/> Thi lại từ đầu
                   </button>
                   {wrongAnswers.length > 0 && (
-                    <button onClick={startReview} className="px-6 py-3 bg-rose-100 text-rose-700 rounded-xl font-medium hover:bg-rose-200 transition flex items-center gap-2">
-                      <IconPlay className="w-5 h-5"/> Ôn tập {wrongAnswers.length} câu sai
+                    <button onClick={startReview} className="px-8 py-4 bg-gradient-to-r from-rose-500 to-red-500 text-white rounded-2xl font-bold hover:shadow-lg hover:shadow-red-500/30 hover:-translate-y-1 transition-all flex items-center gap-2 active:scale-95">
+                      <IconPlay className="w-5 h-5"/> Ôn lại {wrongAnswers.length} câu sai
                     </button>
                   )}
                 </div>
@@ -687,39 +687,43 @@
           }
 
           return (
-            <div className="animate-fade-in-up max-w-3xl mx-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                  {reviewMode ? <span className="text-rose-600">Chế độ Ôn lỗi sai</span> : <span>Bài Kiểm tra Thông tư 02</span>}
+            <div className="max-w-3xl mx-auto">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-extrabold text-gray-800 flex items-center gap-3">
+                  {reviewMode ? (
+                    <><span className="flex items-center justify-center w-8 h-8 rounded-full bg-rose-100 text-rose-600"><IconAlertCircle className="w-5 h-5"/></span> Chế độ Ôn tập lỗi sai</>
+                  ) : (
+                    <><span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600"><IconCheckCircle className="w-5 h-5"/></span> Bài Kiểm tra Thông tư 02</>
+                  )}
                 </h2>
-                <span className="bg-gray-100 text-gray-600 px-4 py-1 rounded-full font-medium text-sm">
+                <span className="bg-gray-100 text-gray-600 px-5 py-1.5 rounded-full font-bold text-sm shadow-inner">
                   Câu {currentQ + 1} / {questions.length}
                 </span>
               </div>
 
-              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-200 mb-6 relative overflow-hidden">
+              <div className={`bg-white p-8 md:p-10 rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 mb-8 relative overflow-hidden ${animState}`}>
                 {/* Progress bar */}
-                <div className="absolute top-0 left-0 h-1 bg-gray-100 w-full">
-                  <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${((currentQ + 1) / questions.length) * 100}%` }}></div>
+                <div className="absolute top-0 left-0 h-1.5 bg-gray-100 w-full">
+                  <div className={`h-full transition-all duration-500 ${reviewMode ? 'bg-rose-500' : 'bg-blue-500'}`} style={{ width: `${((currentQ + 1) / questions.length) * 100}%` }}></div>
                 </div>
                 
-                <h3 className="text-lg font-semibold text-gray-800 mb-6 mt-2 leading-relaxed">
+                <h3 className="text-xl font-bold text-gray-800 mb-8 mt-2 leading-relaxed">
                   {q.q}
                 </h3>
                 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {q.options.map((opt, index) => {
-                    let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 font-medium ";
+                    let btnClass = "w-full text-left p-5 rounded-2xl border-2 transition-all duration-200 font-medium ";
                     
                     if (!isAnswered) {
-                      btnClass += "border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-700";
+                      btnClass += "border-gray-100 bg-gray-50/50 hover:border-blue-300 hover:bg-blue-50 text-gray-700 hover:-translate-y-1 hover:shadow-md";
                     } else {
                       if (index === q.ans) {
-                        btnClass += "border-green-500 bg-green-50 text-green-800 shadow-md transform scale-[1.01]"; // Correct
+                        btnClass += "border-green-500 bg-green-50 text-green-800 shadow-lg shadow-green-500/20 transform scale-[1.02] z-10 relative"; 
                       } else if (index === selectedAns) {
-                        btnClass += "border-red-500 bg-red-50 text-red-800"; // Wrong selected
+                        btnClass += "border-red-400 bg-red-50 text-red-800"; 
                       } else {
-                        btnClass += "border-gray-100 bg-gray-50 text-gray-400 opacity-50"; // Others
+                        btnClass += "border-gray-100 bg-gray-50 text-gray-400 opacity-50"; 
                       }
                     }
 
@@ -737,27 +741,25 @@
                 </div>
 
                 {/* Feedback Area */}
-                {isAnswered && (
-                  <div className={`mt-6 p-4 rounded-xl border ${selectedAns === q.ans ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} animate-fade-in-up`}>
-                    <p className={`font-bold mb-1 ${selectedAns === q.ans ? 'text-green-700' : 'text-red-700'}`}>
-                      {selectedAns === q.ans ? '🎉 Chính xác!' : '❌ Rất tiếc, câu trả lời chưa đúng.'}
+                <div className={`mt-8 p-5 rounded-2xl border overflow-hidden transition-all duration-500 ${isAnswered ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0 border-transparent p-0 mt-0'} ${selectedAns === q.ans ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                    <p className={`font-extrabold mb-2 flex items-center gap-2 ${selectedAns === q.ans ? 'text-green-700' : 'text-red-700'}`}>
+                      {selectedAns === q.ans ? '🎉 Xuất sắc!' : '❌ Rất tiếc!'}
                     </p>
-                    <p className="text-gray-700 text-sm"><strong>Giải thích:</strong> {q.exp}</p>
-                  </div>
-                )}
+                    <p className="text-gray-700 text-sm leading-relaxed"><strong className="opacity-80">Giải thích:</strong> {q.exp}</p>
+                </div>
               </div>
 
               <div className="flex justify-end">
                 <button 
                   onClick={handleNext}
                   disabled={!isAnswered}
-                  className={`px-8 py-3 rounded-xl font-semibold transition-all ${
+                  className={`px-8 py-4 rounded-2xl font-bold transition-all flex items-center gap-2 active:scale-95 ${
                     isAnswered 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg' 
+                    ? 'bg-gray-800 text-white hover:bg-black shadow-xl shadow-gray-800/30 hover:-translate-y-1' 
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
-                  {currentQ < questions.length - 1 ? 'Câu tiếp theo ➔' : 'Xem kết quả chung cuộc'}
+                  {currentQ < questions.length - 1 ? 'Chuyển sang câu tiếp theo ➔' : 'Xem kết quả chung cuộc ➔'}
                 </button>
               </div>
             </div>

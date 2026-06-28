@@ -3,974 +3,713 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phát triển năng lực số cho học sinh theo thông tư 02</title>
+    <title>Khung năng lực số cho người học (Thông tư 02/2025)</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (Giao diện) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        edu: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e' },
-                        digital: { bg: '#f8fafc', panel: '#ffffff', border: '#e2e8f0', text: '#334155' }
-                    },
-                    boxShadow: {
-                        'soft': '0 10px 40px -10px rgba(0, 0, 0, 0.08)',
-                        'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
-                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)'
-                    }
-                }
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel (Trình biên dịch JSX trực tiếp trên trình duyệt) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Custom CSS (Hiệu ứng) -->
+    <style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none; 
+            scrollbar-width: none; 
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
-    </script>
-
-    <!-- React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Canvas Confetti -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-    <style>
-        body { background-color: #f1f5f9; color: #334155; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
-        
-        /* Hiệu ứng nền kỹ thuật số (Dot Pattern) */
-        .bg-dots {
-            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-
-        .glass-panel { 
-            background: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(226, 232, 240, 0.8); 
-            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08); 
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        /* Animation */
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
-        
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-slide-down { animation: slideDown 0.2s ease-out forwards; }
     </style>
 </head>
-<body class="flex h-screen w-screen overflow-hidden bg-dots text-slate-800 selection:bg-edu-200 selection:text-edu-900">
-    <div id="root" class="w-full h-full backdrop-blur-[2px]"></div>
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 font-sans text-gray-800 antialiased">
+    
+    <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef } = React;
+        const { useState, useEffect } = React;
 
-        // ==========================================
-        // 1. DATA MOCKUP (CHUẨN TT02 & CV3456)
-        // ==========================================
-        
-        const terminologyData = [
-            { term: "Năng lực số", desc: "Khả năng truy cập, quản lý, hiểu, kết hợp, giao tiếp, đánh giá và sáng tạo thông tin một cách an toàn và phù hợp thông qua công nghệ số. Đây là nền tảng để học sinh phát triển toàn diện trong kỷ nguyên số." },
-            { term: "An sinh số", desc: "Trạng thái thể chất, tinh thần và xã hội liên quan đến việc sử dụng công nghệ số; khả năng duy trì sự cân bằng giữa cuộc sống thực và trực tuyến, bảo vệ bản thân khỏi các tác động tiêu cực của không gian mạng." },
-            { term: "Bắt nạt trên mạng", desc: "Hành vi sử dụng công nghệ số để quấy rối, đe dọa, hoặc làm nhục người khác một cách lặp đi lặp lại. Bao gồm việc gửi tin nhắn đe dọa, chia sẻ hình ảnh nhạy cảm khi chưa được phép." },
-            { term: "Danh tính số", desc: "Tập hợp các thông tin dữ liệu gắn liền với một cá nhân trên môi trường mạng, bao gồm hồ sơ mạng xã hội, lịch sử tìm kiếm, và dấu chân kỹ thuật số. Cần được quản lý để bảo vệ quyền riêng tư." },
-            { term: "Trí tuệ nhân tạo (AI)", desc: "Hệ thống máy tính có khả năng thực hiện các tác vụ thường đòi hỏi trí thông minh của con người, chẳng hạn như nhận dạng giọng nói, ra quyết định và dịch thuật ngôn ngữ." },
-            { term: "Công dân số", desc: "Người có khả năng sử dụng công nghệ thông tin một cách tự tin, an toàn và có trách nhiệm trong học tập, công việc và tham gia các hoạt động xã hội." },
-            { term: "Dấu chân kỹ thuật số", desc: "Dấu vết dữ liệu mà người dùng để lại khi sử dụng internet, bao gồm lịch sử duyệt web, bài đăng mạng xã hội, dữ liệu vị trí. Dấu chân này có thể tồn tại vĩnh viễn và ảnh hưởng đến uy tín cá nhân." }
+        // --- ICONS SET (Thay thế Lucide bằng Inline SVG để chạy Offline) ---
+        const IconBookOpen = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>;
+        const IconLayers = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 12 12 17 22 12"></polyline><polyline points="2 17 12 22 22 17"></polyline></svg>;
+        const IconGrid = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>;
+        const IconFileText = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>;
+        const IconCheckCircle = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
+        const IconChevronDown = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
+        const IconChevronUp = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>;
+        const IconDownload = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>;
+        const IconAward = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>;
+        const IconAlertCircle = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>;
+        const IconRefreshCcw = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>;
+        const IconPlay = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>;
+
+        // --- DATA STRUCTURES (Dựa trên tài liệu Thông tư 02/2025/TT-BGDĐT) ---
+
+        const TERMS = [
+          { id: 1, term: "An sinh số", desc: "Trạng thái cân bằng giữa việc sử dụng công nghệ số và sức khỏe tinh thần, thể chất của người dùng trong việc sử dụng phương tiện kỹ thuật số." },
+          { id: 2, term: "Bắt nạt trên mạng", desc: "Những hành vi có chủ đích xấu được tiến hành bởi một người hoặc một nhóm người lên một cá nhân thông qua không gian mạng." },
+          { id: 3, term: "Danh tính số", desc: "Tổng hợp thông tin về một người tồn tại ở dạng kỹ thuật số để định danh và phân biệt với những người khác." },
+          { id: 4, term: "Danh tiếng trực tuyến", desc: "Sự đánh giá hoặc nhận thức của xã hội về giá trị, uy tín, hoặc hình ảnh của một cá nhân, tổ chức trên môi trường trực tuyến." },
+          { id: 5, term: "Dịch vụ số", desc: "Các dịch vụ được cung cấp thông qua phương tiện giao tiếp số." },
+          { id: 6, term: "Dữ liệu", desc: "Thông tin dưới dạng ký hiệu, chữ viết, chữ số, hình ảnh, âm thanh hoặc dạng tương tự được lưu trữ, xử lý bởi thiết bị số." },
+          { id: 7, term: "Dấu chân số", desc: "Dấu vết dữ liệu mà một cá nhân tạo ra khi sử dụng Internet và các thiết bị số." },
+          { id: 8, term: "Giao tiếp số", desc: "Quá trình trao đổi thông tin, tương tác thông qua các phương tiện kỹ thuật số." },
+          { id: 9, term: "Giải quyết vấn đề trong môi trường số", desc: "Khả năng sử dụng công nghệ số để nhận diện, phân tích và tìm ra giải pháp cho các vấn đề." },
+          { id: 10, term: "Hành vi số", desc: "Cách thức con người hành động, tương tác và ứng xử trên môi trường số." },
+          { id: 11, term: "Năng lực số", desc: "Khả năng tiếp cận, sử dụng, sáng tạo, quản lý và đánh giá thông tin, dữ liệu một cách an toàn, có đạo đức trên môi trường số." },
+          { id: 12, term: "Môi trường số", desc: "Môi trường được tạo ra từ việc sử dụng mạng Internet, mạng xã hội, ứng dụng và các nền tảng trực tuyến." },
+          { id: 13, term: "Nội dung số", desc: "Nội dung tồn tại dưới dạng dữ liệu số được mã hóa ở định dạng kỹ thuật số." },
+          { id: 14, term: "Phương tiện giao tiếp số", desc: "Các nền tảng, công cụ và nội dung được tạo ra, lưu trữ, phân phối qua công nghệ số." },
+          { id: 15, term: "Thiết bị số", desc: "Thiết bị điện tử, máy tính, viễn thông... dùng để xử lý, lưu trữ trao đổi thông tin số." },
+          { id: 16, term: "Thông tin", desc: "Dữ liệu đã được tổ chức, xử lý để trở nên có ý nghĩa." },
+          { id: 17, term: "Tri thức", desc: "Sự hiểu biết, nhận thức tích lũy qua học hỏi, trải nghiệm." },
+          { id: 18, term: "Trí tuệ nhân tạo (AI)", desc: "Việc phát triển các hệ thống máy móc có khả năng thực hiện nhiệm vụ đòi hỏi trí tuệ con người." },
+          { id: 19, term: "Trí tuệ nhân tạo tạo sinh", desc: "Một loại AI có khả năng tạo ra nội dung mới như văn bản, hình ảnh, âm thanh dựa trên dữ liệu đã học." }
         ];
 
-        const domainsData = [
-            { 
-                id: "M1", 
-                name: "I. Vận hành thiết bị và phần mềm", 
-                subs: ["1.1. Vận hành thiết bị số", "1.2. Sử dụng phần mềm, ứng dụng", "1.3. Khắc phục sự cố công nghệ"],
-                desc: "Khả năng nhận biết, lựa chọn, sử dụng các thiết bị và phần mềm một cách an toàn, hiệu quả để giải quyết các nhiệm vụ học tập và đời sống.",
-                example: "Học sinh biết cách bật/tắt máy tính an toàn; cài đặt và sử dụng các ứng dụng học tập trực tuyến (Zalo, Zoom, MS Teams); biết kiểm tra cấu hình mạng cơ bản khi thiết bị không vào được Internet."
-            },
-            { 
-                id: "M2", 
-                name: "II. Thông tin và dữ liệu", 
-                subs: ["2.1. Tìm kiếm và duyệt thông tin", "2.2. Đánh giá thông tin", "2.3. Quản lý dữ liệu, thông tin"],
-                desc: "Khả năng tìm kiếm, truy cập, đánh giá, quản lý, lưu trữ và chia sẻ dữ liệu số, thông tin số một cách có ý thức và hiệu quả.",
-                example: "Học sinh sử dụng công cụ tìm kiếm để tra cứu tài liệu học tập; biết cách kiểm tra chéo các nguồn tin để phân biệt tin giả trên mạng xã hội; biết tổ chức lưu trữ tài liệu có hệ thống trên máy tính hoặc Google Drive."
-            },
-            { 
-                id: "M3", 
-                name: "III. Giao tiếp và hợp tác trong môi trường số", 
-                subs: ["3.1. Tương tác qua công nghệ số", "3.2. Chia sẻ qua công nghệ số", "3.3. Hợp tác qua công nghệ số", "3.4. Giao tiếp đa văn hóa", "3.5. Quản lý danh tính số"],
-                desc: "Khả năng tương tác, chia sẻ, cộng tác thông qua các nền tảng số; thể hiện hành vi ứng xử chuẩn mực, hiểu biết văn hóa trên không gian mạng.",
-                example: "Học sinh sử dụng nền tảng trực tuyến để thảo luận nhóm và làm bài tập chung; gửi email xin phép giáo viên đúng chuẩn mực văn hóa số; thiết lập quyền riêng tư nhằm quản lý dấu chân kỹ thuật số cá nhân."
-            },
-            { 
-                id: "M4", 
-                name: "IV. An toàn và An sinh số", 
-                subs: ["4.1. Bảo vệ thiết bị", "4.2. Bảo vệ dữ liệu cá nhân", "4.3. Bảo vệ sức khỏe", "4.4. Bảo vệ môi trường"],
-                desc: "Khả năng bảo vệ thiết bị, bảo vệ dữ liệu cá nhân, quyền riêng tư; nhận thức và bảo vệ sức khỏe thể chất, tinh thần khi sử dụng công nghệ số; xử lý rác thải điện tử đúng cách.",
-                example: "Học sinh biết thiết lập mật khẩu mạnh cho thiết bị; nhận diện và không nhấp vào các đường link lạ (phishing); tự ý thức việc nghỉ giải lao để bảo vệ thị lực khi dùng máy tính kéo dài."
-            },
-            { 
-                id: "M5", 
-                name: "V. Sáng tạo nội dung số", 
-                subs: ["5.1. Phát triển nội dung số", "5.2. Tích hợp và chỉnh sửa", "5.3. Bản quyền và giấy phép", "5.4. Lập trình máy tính"],
-                desc: "Khả năng tạo ra, chỉnh sửa, tích hợp thông tin số và nội dung số thành một sản phẩm mới; tuân thủ quy định về bản quyền, giấy phép và vận dụng các nguyên lý lập trình máy tính cơ bản.",
-                example: "Học sinh thiết kế bài thuyết trình (Canva/PowerPoint) có trích dẫn nguồn hình ảnh hợp lệ; chỉnh sửa video báo cáo hoạt động nhóm; biết sử dụng ngôn ngữ lập trình (Scratch/Python) để giải quyết các bài toán cơ bản."
-            },
-            { 
-                id: "M6", 
-                name: "VI. Hiểu biết, Ứng dụng AI", 
-                subs: ["6.1. Hiểu biết cơ bản về AI", "6.2. Ứng dụng AI", "6.3. Đạo đức AI"],
-                desc: "Khả năng nhận diện, hiểu cơ chế hoạt động cơ bản của Trí tuệ nhân tạo (AI); ứng dụng công cụ AI một cách an toàn, hiệu quả, có đạo đức trong học tập và giải quyết vấn đề.",
-                example: "Học sinh sử dụng công cụ AI sinh tạo (như ChatGPT, Gemini) để hỗ trợ tìm kiếm ý tưởng nhưng không sao chép nguyên văn; hiểu được nguyên lý các nền tảng YouTube/TikTok dùng thuật toán AI để đề xuất nội dung."
-            }
+        const DOMAINS = [
+          {
+            id: 1, name: "1. Khai thác dữ liệu và thông tin",
+            desc: "Tập trung vào khả năng tìm kiếm, lọc, đánh giá và quản lý dữ liệu, thông tin, nội dung số; xác định nguồn tin cậy.",
+            sub: [
+              { id: "1.1", name: "Duyệt, tìm kiếm và lọc dữ liệu, thông tin và nội dung số", example: "Biết dùng từ khóa chính xác trên Google để tìm tài liệu học tập.", matrix: ["Tìm kiếm cơ bản (có HD)", "Tìm kiếm cơ bản (độc lập)", "Tìm kiếm theo quy trình", "Tổ chức chiến lược tìm kiếm", "Đề xuất kỹ thuật nâng cao"] },
+              { id: "1.2", name: "Đánh giá dữ liệu, thông tin và nội dung số", example: "Phân biệt được tin giả trên mạng xã hội và tin chính thống.", matrix: ["Phát hiện độ tin cậy chung", "Xác định nguồn tin cơ bản", "Phân tích, so sánh nguồn", "Đánh giá nhiều nguồn phức tạp", "Kiểm chứng, phản biện thông tin"] },
+              { id: "1.3", name: "Quản lý dữ liệu, thông tin và nội dung số", example: "Lưu trữ tài liệu có cấu trúc thư mục trên Google Drive.", matrix: ["Lưu trữ cơ bản (có HD)", "Phân loại file cơ bản", "Tổ chức thư mục logic", "Quản lý dữ liệu đa nền tảng", "Hệ thống quản lý dữ liệu cá nhân"] }
+            ]
+          },
+          {
+            id: 2, name: "2. Giao tiếp và hợp tác trong môi trường số",
+            desc: "Tương tác, giao tiếp và cộng tác hiệu quả qua công nghệ số; thể hiện hành vi số chuẩn mực.",
+            sub: [
+              { id: "2.1", name: "Tương tác qua công nghệ số", example: "Sử dụng Zalo/Teams để trao đổi bài tập nhóm.", matrix: ["Dùng công cụ cơ bản", "Tương tác nhóm nhỏ", "Lựa chọn công cụ phù hợp", "Quản lý nhóm lớn", "Tối ưu hóa tương tác"] },
+              { id: "2.2", name: "Chia sẻ thông qua công nghệ số", example: "Chia sẻ link Google Doc cho bạn bè cùng sửa chung.", matrix: ["Chia sẻ file cơ bản", "Chia sẻ với nhóm", "Chia sẻ có phân quyền", "Quản trị chia sẻ đa nền tảng", "Xây dựng chiến lược chia sẻ"] },
+              { id: "2.3", name: "Tham gia các hoạt động công dân số", example: "Tham gia các khảo sát trực tuyến của nhà trường.", matrix: ["Nhận diện dịch vụ công", "Sử dụng dịch vụ có HD", "Tự dùng dịch vụ công", "Tham gia cộng đồng số", "Đóng góp tích cực xã hội số"] },
+              { id: "2.4", name: "Hợp tác thông qua công nghệ số", example: "Cùng làm slide thuyết trình trực tuyến trên Canva.", matrix: ["Tham gia hợp tác (có HD)", "Hợp tác nhiệm vụ nhỏ", "Tổ chức nhóm hợp tác", "Lãnh đạo nhóm trực tuyến", "Đánh giá hiệu quả hợp tác"] },
+              { id: "2.5", name: "Phép xã giao trên mạng (Netiquette)", example: "Tôn trọng người khác khi bình luận, không dùng từ ngữ xúc phạm.", matrix: ["Biết quy tắc cơ bản", "Tuân thủ quy tắc giao tiếp", "Ứng xử chuẩn mực", "Xử lý xung đột cơ bản", "Xây dựng văn hóa mạng"] },
+              { id: "2.6", name: "Quản lý danh tính số", example: "Chỉ chia sẻ thông tin cần thiết trên trang Facebook cá nhân.", matrix: ["Nhận thức danh tính số", "Bảo vệ thông tin cá nhân", "Quản lý hình ảnh cá nhân", "Xây dựng danh tiếng trực tuyến", "Bảo vệ và tối ưu danh tính"] }
+            ]
+          },
+          {
+            id: 3, name: "3. Sáng tạo nội dung số",
+            desc: "Khả năng tạo mới, chỉnh sửa, tích hợp nội dung số, hiểu biết về bản quyền và lập trình.",
+            sub: [
+              { id: "3.1", name: "Phát triển nội dung số", example: "Tạo video ngắn hoặc thiết kế ấn phẩm truyền thông học tập.", matrix: ["Tạo nội dung đơn giản", "Tạo nội dung đa phương tiện", "Thiết kế nội dung sáng tạo", "Sản xuất nội dung chuyên nghiệp", "Phát triển nội dung đột phá"] },
+              { id: "3.2", name: "Tích hợp và chỉnh sửa lại nội dung số", example: "Chỉnh sửa video bằng Capcut hoặc làm mới bài thuyết trình.", matrix: ["Chỉnh sửa cơ bản", "Phối hợp nhiều nguồn", "Tái cấu trúc nội dung", "Tích hợp nâng cao", "Đổi mới nội dung đa nền tảng"] },
+              { id: "3.3", name: "Bản quyền và giấy phép", example: "Trích dẫn đúng nguồn khi lấy ảnh, tài liệu từ Internet.", matrix: ["Nhận thức bản quyền", "Tuân thủ quy tắc cơ bản", "Áp dụng giấy phép (Creative Commons)", "Xử lý vi phạm bản quyền", "Quản lý bản quyền hệ thống"] },
+              { id: "3.4", name: "Lập trình", example: "Viết mã bằng Scratch hoặc tạo web/app Python cơ bản.", matrix: ["Làm quen lệnh đơn giản", "Viết đoạn mã ngắn", "Xây dựng chương trình nhỏ", "Phát triển ứng dụng cơ bản", "Tối ưu hóa và debug code"] }
+            ]
+          },
+          {
+            id: 4, name: "4. Bảo vệ và an toàn số",
+            desc: "Đảm bảo an toàn thiết bị, dữ liệu cá nhân, sức khỏe tinh thần và bảo vệ môi trường.",
+            sub: [
+              { id: "4.1", name: "Bảo vệ thiết bị", example: "Cài đặt mật khẩu thiết bị mạnh và phần mềm diệt virus.", matrix: ["Nhận diện rủi ro", "Áp dụng bảo vệ cơ bản", "Thiết lập bảo mật thiết bị", "Quản lý an ninh mạng cá nhân", "Đánh giá, khắc phục rủi ro"] },
+              { id: "4.2", name: "Bảo vệ dữ liệu cá nhân và quyền riêng tư", example: "Không chia sẻ mã OTP hoặc mật khẩu cho bất kỳ ai trên mạng.", matrix: ["Bảo mật thông tin cơ bản", "Quản lý quyền riêng tư", "Thiết lập bảo vệ nâng cao", "Xử lý rò rỉ dữ liệu", "Phân tích bảo mật toàn diện"] },
+              { id: "4.3", name: "Bảo vệ sức khỏe và an sinh số", example: "Giới hạn thời gian dùng điện thoại để tránh hại mắt và nghiện game.", matrix: ["Nhận thức rủi ro sức khỏe", "Cân bằng thời gian online", "Phòng tránh nghiện game/mạng", "Tạo thói quen số lành mạnh", "Bảo vệ an sinh số cộng đồng"] },
+              { id: "4.4", name: "Bảo vệ môi trường", example: "Tái chế pin, tắt nguồn máy tính khi không sử dụng để tiết kiệm năng lượng.", matrix: ["Nhận thức tác động môi trường", "Tiết kiệm năng lượng", "Tái chế rác thải điện tử", "Áp dụng giải pháp số xanh", "Lan tỏa ý thức môi trường"] }
+            ]
+          },
+          {
+            id: 5, name: "5. Giải quyết vấn đề trong môi trường số",
+            desc: "Phát hiện, xử lý lỗi kĩ thuật, sử dụng công nghệ để sáng tạo và giải quyết vấn đề.",
+            sub: [
+              { id: "5.1", name: "Giải quyết các trục trặc kỹ thuật", example: "Khởi động lại modem khi mất mạng, xử lý lỗi phần cứng nhỏ.", matrix: ["Nhờ hỗ trợ khi có lỗi", "Khắc phục lỗi cơ bản", "Tự sửa lỗi phổ biến", "Chẩn đoán lỗi hệ thống", "Giải quyết lỗi phức tạp"] },
+              { id: "5.2", name: "Xác định nhu cầu và phản hồi công nghệ", example: "Biết chọn dùng Word để gõ văn bản thay vì dùng Excel.", matrix: ["Xác định nhu cầu cơ bản", "Chọn công cụ phù hợp", "Đánh giá công cụ đang dùng", "Tối ưu hóa lựa chọn", "Đề xuất giải pháp công nghệ"] },
+              { id: "5.3", name: "Sử dụng công nghệ số một cách sáng tạo", example: "Dùng sơ đồ tư duy trực tuyến (Mindmeister/Miro) để làm bài tập.", matrix: ["Thử nghiệm công cụ mới", "Áp dụng vào học tập", "Sáng tạo nội dung học", "Thiết kế giải pháp mới", "Dẫn dắt sáng tạo số"] },
+              { id: "5.4", name: "Xác định khiếm khuyết về kỹ năng số", example: "Tự học thêm cách làm PowerPoint trên YouTube khi thấy mình chưa giỏi.", matrix: ["Nhận ra điểm yếu (có HD)", "Tự nhận thức kỹ năng", "Lập kế hoạch tự học", "Liên tục cập nhật kiến thức", "Hướng dẫn người khác"] }
+            ]
+          },
+          {
+            id: 6, name: "6. Ứng dụng trí tuệ nhân tạo (AI)",
+            desc: "Hiểu, sử dụng và đánh giá công cụ AI một cách có đạo đức, trách nhiệm.",
+            sub: [
+              { id: "6.1", name: "Hiểu biết về trí tuệ nhân tạo", example: "Biết ChatGPT hay Gemini là một hệ thống AI chứ không phải con người thật.", matrix: ["Nhận diện AI cơ bản", "Giải thích cách hoạt động đơn giản", "Phân tích đặc điểm AI", "So sánh các hệ thống AI", "Đánh giá chuyên sâu mô hình AI"] },
+              { id: "6.2", name: "Sử dụng và ứng dụng trí tuệ nhân tạo", example: "Dùng AI để lấy ý tưởng hoặc tóm tắt một bài báo dài thành ý chính.", matrix: ["Sử dụng AI (có HD)", "Tự dùng AI cơ bản", "Ứng dụng AI vào học tập", "Tối ưu prompt (câu lệnh)", "Tích hợp AI vào dự án"] },
+              { id: "6.3", name: "Đánh giá trí tuệ nhân tạo", example: "Hiểu rằng kết quả từ AI có thể có thiên kiến hoặc sai sót, cần phải kiểm tra lại.", matrix: ["Nhận diện vật dụng dùng AI", "Kiểm tra kết quả sinh ra", "Phân tích hiệu quả AI giải quyết vấn đề", "Đánh giá độ chính xác, tin cậy", "Phân tích thiên kiến, đề xuất cải tiến"] }
+            ]
+          }
         ];
 
-        const allCompetencies = domainsData.flatMap(d => d.subs);
-
-        const matrixData = {
-            "1.1. Vận hành thiết bị số": {
-                m1: "Nhận biết các thiết bị số cơ bản (điện thoại, máy tính). Biết cách bật/tắt an toàn.",
-                m2: "Sử dụng các chức năng cơ bản, thay đổi cài đặt đơn giản (âm lượng, độ sáng).",
-                m3: "Kết nối thiết bị với mạng internet, cài đặt ứng dụng cơ bản.",
-                m4: "Đồng bộ hóa dữ liệu giữa các thiết bị, khắc phục lỗi kết nối mạng cơ bản.",
-                m5: "Đánh giá, lựa chọn cấu hình thiết bị phù hợp nhu cầu. Xử lý sự cố phần cứng/phần mềm phức tạp."
-            },
-            "2.2. Đánh giá thông tin": {
-                m1: "Biết rằng không phải mọi thông tin trên mạng đều đúng.",
-                m2: "Nhận biết được một số nguồn thông tin quen thuộc, đáng tin cậy.",
-                m3: "Phân biệt được tin tức thực tế và ý kiến cá nhân. Biết đối chiếu 2-3 nguồn.",
-                m4: "Đánh giá được độ tin cậy của thông tin dựa trên tác giả, nguồn gốc, mục đích.",
-                m5: "Kiểm chứng thông tin phức tạp, phát hiện tin giả tinh vi và sự thiên kiến của dữ liệu."
-            }
-        };
-        allCompetencies.forEach(comp => {
-            if(!matrixData[comp]) {
-                matrixData[comp] = {
-                    m1: "Thực hiện dưới sự hướng dẫn chi tiết của giáo viên. (Mức Cơ bản - Lớp 1,2,3)",
-                    m2: "Thực hiện độc lập các tác vụ đơn giản, quen thuộc. (Mức Áp dụng - Lớp 4,5)",
-                    m3: "Lựa chọn công cụ phù hợp để giải quyết vấn đề học tập. (Mức Phân tích - Lớp 6,7)",
-                    m4: "Thành thạo kỹ năng, biết cách tối ưu hóa quy trình. (Mức Nâng cao - Lớp 8,9)",
-                    m5: "Định hướng chiến lược, sáng tạo và hướng dẫn người khác. (Mức Chuyên sâu - Lớp 10-12)"
-                };
-            }
-        });
-
-        // Tạo Base Quiz Questions (5 dạng)
-        const baseQuizData = [
-            { type: "single", q: "Khung năng lực số theo Thông tư 02/2025 gồm bao nhiêu nhóm năng lực chính?", options: ["4 nhóm", "5 nhóm", "6 nhóm", "7 nhóm"], correct: [2], explain: "Thông tư 02 quy định Khung năng lực số gồm 6 miền/nhóm năng lực chính (Từ I đến VI)." },
-            { type: "multi", q: "Những năng lực nào sau đây thuộc nhóm 'IV. An toàn và An sinh số'?", options: ["Bảo vệ thiết bị", "Bảo vệ môi trường", "Lập trình máy tính", "Bảo vệ sức khỏe"], correct: [0, 1, 3], explain: "Nhóm IV gồm: 4.1 Bảo vệ thiết bị, 4.2 Bảo vệ dữ liệu, 4.3 Bảo vệ sức khỏe, 4.4 Bảo vệ môi trường." },
-            { type: "tf", q: "Theo công văn 3456, Mức 3 (Bậc 3) tương ứng với học sinh lớp 8 và 9.", options: ["Đúng", "Sai"], correct: [1], explain: "Sai. Mức 3 tương ứng với Lớp 6, 7. Lớp 8, 9 tương ứng với Mức 4." },
-            { type: "fill", q: "Năng lực số là khả năng _________, quản lý, hiểu, kết hợp, giao tiếp, đánh giá và sáng tạo thông tin.", options: ["truy cập", "lưu trữ", "sao chép", "xóa bỏ"], correct: [0], explain: "Định nghĩa chuẩn (Điều 2): Khả năng truy cập, quản lý, hiểu, kết hợp..." },
-            { type: "match", q: "Ghép nhóm năng lực với cấp lớp tương ứng theo Công văn 3456:", pairs: [ { left: "Mức 1", rightOpts: ["Lớp 1, 2, 3", "Lớp 4, 5", "Lớp 6, 7"], rightAns: "Lớp 1, 2, 3" }, { left: "Mức 2", rightOpts: ["Lớp 1, 2, 3", "Lớp 4, 5", "Lớp 6, 7"], rightAns: "Lớp 4, 5" }, { left: "Mức 3", rightOpts: ["Lớp 1, 2, 3", "Lớp 4, 5", "Lớp 6, 7"], rightAns: "Lớp 6, 7" } ], explain: "Mức 1: Lớp 1-3; Mức 2: Lớp 4-5; Mức 3: Lớp 6-7." },
-            { type: "single", q: "Năng lực '6.3. Đạo đức AI' thuộc miền năng lực số mấy?", options: ["Miền III", "Miền IV", "Miền V", "Miền VI"], correct: [3], explain: "Đạo đức AI là năng lực 6.3 thuộc Miền VI: Hiểu biết, Ứng dụng AI." },
-            { type: "tf", q: "Giáo viên bắt buộc phải đánh giá riêng biệt từng tiêu chí năng lực số vào sổ điểm học bạ.", options: ["Đúng", "Sai"], correct: [1], explain: "Sai. Theo CV3456, năng lực số được lồng ghép trong quá trình dạy học và đánh giá qua các hoạt động thực hành, không yêu cầu tách thành một đầu điểm độc lập trong học bạ." },
-            { type: "multi", q: "Trong quy trình lập Kế hoạch bài dạy tích hợp Năng lực số, giáo viên cần làm gì?", options: ["Xác định yêu cầu cần đạt của môn học", "Xác định năng lực số có thể tích hợp", "Bỏ qua yêu cầu môn học để tập trung vào số hóa", "Lựa chọn phương pháp dạy học phù hợp"], correct: [0, 1, 3], explain: "Việc tích hợp không được làm mất đi mục tiêu cốt lõi của môn học, do đó phương án 'Bỏ qua yêu cầu môn học' là sai." },
-            { type: "fill", q: "Bắt nạt trên mạng là hành vi sử dụng công nghệ số để quấy rối, đe dọa, hoặc làm nhục người khác một cách _________.", options: ["tức thời", "lặp đi lặp lại", "ẩn danh", "công khai"], correct: [1], explain: "Theo Điều 2 TT02: Bắt nạt trên mạng có tính chất 'lặp đi lặp lại'." },
-            { type: "single", q: "Đối tượng áp dụng chính của Công văn 3456 là ai?", options: ["Giáo viên Đại học", "Học sinh phổ thông và GDTX", "Trẻ mầm non", "Cán bộ quản lý Nhà nước"], correct: [1], explain: "CV 3456 hướng dẫn triển khai Khung năng lực số cho học sinh phổ thông và học viên GDTX." }
+        const SUBJECTS = [
+          "Toán", "Ngữ văn", "Ngoại ngữ", "Giáo dục công dân", "Lịch sử", "Địa lí", 
+          "Khoa học tự nhiên", "Vật lí", "Hóa học", "Sinh học", "Công nghệ", "Tin học", 
+          "Giáo dục thể chất", "Nghệ thuật (Âm nhạc, Mĩ thuật)", "Hoạt động trải nghiệm, hướng nghiệp"
         ];
 
-        const generate50Questions = () => {
-            let pool = [];
-            for(let i=0; i<50; i++) {
-                let base = baseQuizData[i % baseQuizData.length];
-                pool.push({
-                    ...base,
-                    originalIndex: i,
-                    q: `[Câu ${i+1}] ${base.q}`
-                });
+        // Trích xuất từ Bộ câu hỏi
+        const QUIZ_DATA = [
+          { id: 1, q: "Thông tư 02/2025/TT-BGDĐT quy định Khung năng lực số cho người học có hiệu lực thi hành từ ngày nào?", options: ["A. 24/01/2025", "B. 11/03/2025", "C. 27/06/2025", "D. 01/09/2025"], ans: 1, exp: "Thông tư này có hiệu lực thi hành kể từ ngày 11 tháng 3 năm 2025." },
+          { id: 2, q: "Khung năng lực số cho người học bao gồm bao nhiêu miền năng lực và năng lực thành phần?", options: ["A. 5 miền, 20 thành phần", "B. 6 miền, 24 thành phần", "C. 6 miền, 19 thành phần", "D. 8 miền, 24 thành phần"], ans: 1, exp: "Khung năng lực số bao gồm 6 miền năng lực với 24 năng lực thành phần." },
+          { id: 3, q: "Cấu trúc Khung năng lực số được chia thành bao nhiêu trình độ và bao nhiêu bậc?", options: ["A. 3 trình độ, 5 bậc", "B. 4 trình độ, 6 bậc", "C. 4 trình độ, 8 bậc", "D. 5 trình độ, 8 bậc"], ans: 2, exp: "Khung được chia thành 4 trình độ từ cơ bản đến chuyên sâu, và 8 bậc (áp dụng bậc 1-5 cho phổ thông)." },
+          { id: 4, q: "Mục đích sử dụng Khung năng lực số để làm cơ sở cho chuẩn chương trình tương ứng với chức năng cốt lõi nào?", options: ["A. Xây dựng chương trình đào tạo", "B. Đánh giá kết quả", "C. Đối sánh tham chiếu", "D. Tất cả phương án trên"], ans: 0, exp: "Làm cơ sở cho chuẩn chương trình phục vụ mục đích Xây dựng CTĐT." },
+          { id: 5, q: "Đâu là định nghĩa chuẩn của 'Danh tính số'?", options: ["A. Uy tín trên mạng", "B. Thông tin số để định danh, phân biệt với người khác", "C. Dấu vết cá nhân", "D. Tài khoản mạng"], ans: 1, exp: "Danh tính số là tổng hợp thông tin về một người ở dạng kỹ thuật số để định danh." },
+          { id: 6, q: "An sinh số là gì?", options: ["A. Cân bằng giữa dùng công nghệ và sức khỏe", "B. Bảo mật tài khoản", "C. Kiếm tiền online", "D. Tránh bắt nạt mạng"], ans: 0, exp: "An sinh số là trạng thái cân bằng giữa việc sử dụng công nghệ số và sức khỏe tinh thần, thể chất." },
+          { id: 7, q: "Bắt nạt trên mạng được hiểu là:", options: ["A. Chơi game thua bị chê", "B. Lừa đảo tiền bạc", "C. Hành vi có chủ đích xấu đe dọa, xúc phạm người khác qua mạng", "D. Spam email"], ans: 2, exp: "Bắt nạt mạng là những hành vi có chủ đích xấu qua không gian mạng." },
+          { id: 8, q: "Danh tiếng trực tuyến là:", options: ["A. Số lượt like trên FB", "B. Đánh giá, nhận thức của xã hội về uy tín cá nhân/tổ chức trên mạng", "C. Được nhiều người theo dõi", "D. Được cấp tick xanh"], ans: 1, exp: "Danh tiếng trực tuyến là sự đánh giá của xã hội về giá trị, uy tín trên môi trường trực tuyến." },
+          { id: 9, q: "Dữ liệu được hiểu là gì trong TT02?", options: ["A. Chữ viết trên giấy", "B. Ký hiệu, chữ viết, hình ảnh... được lưu trữ, xử lý bởi thiết bị số", "C. Mật khẩu wifi", "D. File Word"], ans: 1, exp: "Dữ liệu là thông tin dưới dạng ký hiệu, chữ viết... được lưu trữ bởi thiết bị số." },
+          { id: 10, q: "Dịch vụ số là:", options: ["A. Dịch vụ cung cấp qua phương tiện giao tiếp số", "B. Giao hàng công nghệ", "C. Sửa chữa máy tính", "D. Lắp đặt Wifi"], ans: 0, exp: "Dịch vụ số là các dịch vụ được cung cấp thông qua phương tiện giao tiếp số." },
+          { id: 11, q: "Dấu chân số (Digital Footprint) là:", options: ["A. Hình nền máy tính", "B. Dấu vân tay mở khóa", "C. Dấu vết dữ liệu cá nhân tạo ra khi dùng Internet", "D. Tên đăng nhập"], ans: 2, exp: "Dấu chân số là dấu vết dữ liệu mà một cá nhân tạo ra khi sử dụng Internet." },
+          { id: 12, q: "Giao tiếp số là:", options: ["A. Gọi điện thoại bàn", "B. Trao đổi, tương tác thông qua phương tiện kỹ thuật số", "C. Gặp mặt trực tiếp", "D. Viết thư tay"], ans: 1, exp: "Quá trình trao đổi thông tin, tương tác thông qua công nghệ số." },
+          { id: 13, q: "Môi trường số được tạo ra từ đâu?", options: ["A. Máy tính hỏng", "B. Trường học", "C. Việc sử dụng Internet, mạng xã hội, nền tảng trực tuyến", "D. Cuốn sách"], ans: 2, exp: "Môi trường số tạo ra từ Internet, mạng xã hội, ứng dụng trực tuyến." },
+          { id: 14, q: "Năng lực số là:", options: ["A. Biết gõ phím nhanh", "B. Khả năng tiếp cận, sử dụng, sáng tạo dữ liệu an toàn, có đạo đức", "C. Biết sửa máy in", "D. Biết chơi game giỏi"], ans: 1, exp: "Năng lực số là khả năng tiếp cận, sử dụng an toàn, có đạo đức trên môi trường số." },
+          { id: 15, q: "Nội dung số tồn tại dưới dạng:", options: ["A. Dữ liệu số được mã hóa", "B. Băng đĩa cũ", "C. Sách in", "D. Tranh sơn dầu"], ans: 0, exp: "Nội dung tồn tại dưới dạng dữ liệu số được mã hóa ở định dạng kỹ thuật số." },
+          { id: 16, q: "Thiết bị điện tử dùng để xử lý, lưu trữ thông tin số gọi là:", options: ["A. Cáp quang", "B. Thiết bị số", "C. Bộ định tuyến", "D. Đĩa CD"], ans: 1, exp: "Thiết bị số là thiết bị điện tử, máy tính... dùng để xử lý, lưu trữ thông tin." },
+          { id: 17, q: "Thông tin khác Dữ liệu ở điểm nào?", options: ["A. Dữ liệu dài hơn", "B. Thông tin là dữ liệu đã được tổ chức, xử lý để có ý nghĩa", "C. Dữ liệu quan trọng hơn", "D. Không có khác biệt"], ans: 1, exp: "Thông tin là Dữ liệu đã được tổ chức, xử lý để trở nên có ý nghĩa." },
+          { id: 18, q: "Tri thức trong môi trường số là:", options: ["A. Nhớ được nhiều pass", "B. Sự hiểu biết tích lũy qua học hỏi, trải nghiệm", "C. Số lượng sách đã đọc", "D. Bằng cấp"], ans: 1, exp: "Tri thức là sự hiểu biết, nhận thức tích lũy qua học hỏi." },
+          { id: 19, q: "Trí tuệ nhân tạo (AI) là:", options: ["A. Máy tính tự sửa chữa", "B. Máy móc có khả năng thực hiện nhiệm vụ đòi hỏi trí tuệ con người", "C. Người máy sinh học", "D. Phần mềm diệt virus"], ans: 1, exp: "Phát triển máy móc có khả năng thực hiện nhiệm vụ như con người." },
+          { id: 20, q: "Trí tuệ nhân tạo tạo sinh (Generative AI) nổi bật ở khả năng:", options: ["A. Chơi cờ vua", "B. Tạo ra nội dung mới như văn bản, hình ảnh", "C. Lái xe tự động", "D. Tìm kiếm Google"], ans: 1, exp: "AI có khả năng tạo ra nội dung mới (văn bản, hình, âm thanh)." },
+          { id: 21, q: "Miền năng lực 1 'Khai thác dữ liệu và thông tin' có bao nhiêu thành phần?", options: ["A. 2", "B. 3", "C. 4", "D. 6"], ans: 1, exp: "Gồm 3 thành phần: Tìm kiếm, Đánh giá, và Quản lý dữ liệu." },
+          { id: 22, q: "Năng lực 'Phép xã giao trên mạng' thuộc miền năng lực nào?", options: ["A. Giao tiếp và hợp tác", "B. Sáng tạo nội dung", "C. Bảo vệ và an toàn", "D. Ứng dụng AI"], ans: 0, exp: "Thuộc Miền 2: Giao tiếp và hợp tác trong môi trường số." },
+          { id: 23, q: "Thành phần 'Bản quyền và giấy phép' nằm ở Miền nào?", options: ["A. Miền 1", "B. Miền 2", "C. Miền 3 (Sáng tạo nội dung số)", "D. Miền 4"], ans: 2, exp: "Bản quyền và giấy phép (3.3) nằm trong Miền 3: Sáng tạo nội dung số." },
+          { id: 24, q: "Miền 4 'Bảo vệ và an toàn số' KHÔNG bao gồm năng lực nào?", options: ["A. Bảo vệ thiết bị", "B. Bảo vệ sức khỏe", "C. Bảo vệ môi trường", "D. Giải quyết trục trặc kỹ thuật"], ans: 3, exp: "Giải quyết trục trặc kỹ thuật thuộc Miền 5 (Giải quyết vấn đề)." },
+          { id: 25, q: "Nhận diện ChatGPT thuộc năng lực nào?", options: ["A. Hiểu biết về AI (6.1)", "B. Bảo vệ thiết bị (4.1)", "C. Lập trình (3.4)", "D. Giao tiếp (2.1)"], ans: 0, exp: "Nhận diện AI cơ bản thuộc năng lực 6.1 (Hiểu biết AI)." },
+          { id: 26, q: "Biết cách dùng Google lọc kết quả tìm kiếm chính xác thuộc nhóm năng lực:", options: ["A. 1.1 Tìm kiếm thông tin", "B. 2.2 Chia sẻ", "C. 3.1 Sáng tạo", "D. 4.2 Bảo vệ riêng tư"], ans: 0, exp: "Kỹ năng tìm kiếm thuộc năng lực 1.1." },
+          { id: 27, q: "Học sinh lớp 1-3 tương ứng với Bậc mấy trong Khung năng lực số phổ thông?", options: ["A. Bậc 1", "B. Bậc 2", "C. Bậc 3", "D. Bậc 4"], ans: 0, exp: "Bậc 1 tương ứng học sinh Tiểu học (Lớp 1-3)." },
+          { id: 28, q: "Học sinh THPT (Lớp 10-12) tương ứng với yêu cầu đạt Bậc mấy?", options: ["A. Bậc 2", "B. Bậc 3", "C. Bậc 4", "D. Bậc 5"], ans: 3, exp: "Bậc 5 là yêu cầu cao nhất áp dụng cho cấp THPT (Lớp 10-12)." },
+          { id: 29, q: "Đánh giá tin giả (fake news) thuộc năng lực thành phần nào?", options: ["A. 1.2 Đánh giá dữ liệu, thông tin", "B. 2.1 Tương tác", "C. 3.2 Tích hợp", "D. 5.1 Xử lý lỗi"], ans: 0, exp: "Đánh giá tin giả thuộc nhóm năng lực 1.2." },
+          { id: 30, q: "Việc không chia sẻ mã OTP cho người khác trên mạng thuộc nhóm năng lực:", options: ["A. 1.3 Quản lý dữ liệu", "B. 4.2 Bảo vệ dữ liệu cá nhân", "C. 5.3 Sáng tạo", "D. 6.2 Dùng AI"], ans: 1, exp: "Bảo mật OTP thuộc năng lực 4.2 Bảo vệ dữ liệu cá nhân và quyền riêng tư." }
+        ];
+
+        // --- UI COMPONENTS ---
+
+        const AccordionItem = ({ title, children }) => {
+          const [isOpen, setIsOpen] = useState(false);
+          return (
+            <div className="mb-4 bg-white/70 backdrop-blur-md rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300">
+              <button 
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full px-6 py-4 flex justify-between items-center text-left focus:outline-none hover:bg-white/90"
+              >
+                <span className="font-semibold text-gray-800 text-lg">{title}</span>
+                {isOpen ? <IconChevronUp className="text-blue-500 w-5 h-5" /> : <IconChevronDown className="text-gray-400 w-5 h-5" />}
+              </button>
+              <div className={`transition-all duration-500 ease-in-out ${isOpen ? 'max-h-[1500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className="px-6 pb-5 text-gray-600 leading-relaxed border-t border-gray-100 pt-4">
+                  {children}
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        function App() {
+          const [activeTab, setActiveTab] = useState(1);
+
+          const TABS = [
+            { id: 1, icon: IconBookOpen, label: "Từ điển Thuật ngữ" },
+            { id: 2, icon: IconLayers, label: "Tổng quan Năng lực" },
+            { id: 3, icon: IconGrid, label: "Ma trận Chi tiết" },
+            { id: 4, icon: IconFileText, label: "Thiết kế Giáo án" },
+            { id: 5, icon: IconCheckCircle, label: "Ôn tập Thông tư 02" }
+          ];
+
+          return (
+            <div className="min-h-screen">
+              {/* Header */}
+              <header className="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-white shadow-sm">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
+                  <div className="flex items-center gap-3 w-full lg:w-auto justify-center lg:justify-start">
+                    <div className="bg-blue-600 p-2 rounded-xl">
+                      <IconAward className="text-white w-6 h-6" />
+                    </div>
+                    <div>
+                      <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-700">
+                        Khung năng lực số cho người học (TT02)
+                      </h1>
+                      <p className="text-xs text-gray-500 font-medium">Hệ thống phân tích Khung năng lực số (TT 02/2025/TT-BGDĐT)</p>
+                    </div>
+                  </div>
+                  
+                  {/* Navigation */}
+                  <nav className="flex space-x-1 bg-gray-100/50 p-1 rounded-xl overflow-x-auto max-w-full no-scrollbar w-full lg:w-auto justify-start lg:justify-end">
+                    {TABS.map(tab => {
+                        const Icon = tab.icon;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                                activeTab === tab.id 
+                                    ? 'bg-white text-blue-600 shadow-md scale-105' 
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                                }`}
+                            >
+                                <Icon className="w-4 h-4" />
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                  </nav>
+                </div>
+              </header>
+
+              {/* Main Content Area */}
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-xl border border-white p-6 md:p-8 min-h-[70vh]">
+                  {activeTab === 1 && <TabDictionary />}
+                  {activeTab === 2 && <TabOverview />}
+                  {activeTab === 3 && <TabMatrix />}
+                  {activeTab === 4 && <TabLessonPlan />}
+                  {activeTab === 5 && <TabQuiz />}
+                </div>
+              </main>
+            </div>
+          );
+        }
+
+        // --- TAB COMPONENTS ---
+
+        function TabDictionary() {
+          return (
+            <div className="animate-fade-in-up">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Bảng tra cứu 19 Thuật ngữ</h2>
+              <p className="text-gray-500 mb-8">Trích dẫn theo Điều 2, Thông tư 02/2025/TT-BGDĐT. Nhấn vào từng mục để xem chi tiết.</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                <div className="space-y-1">
+                  {TERMS.slice(0, 10).map(item => (
+                    <AccordionItem key={item.id} title={`STT ${item.id}. ${item.term}`}>
+                      <p className="text-gray-700">{item.desc}</p>
+                    </AccordionItem>
+                  ))}
+                </div>
+                <div className="space-y-1">
+                  {TERMS.slice(10).map(item => (
+                    <AccordionItem key={item.id} title={`STT ${item.id}. ${item.term}`}>
+                      <p className="text-gray-700">{item.desc}</p>
+                    </AccordionItem>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        function TabOverview() {
+          return (
+            <div className="animate-fade-in-up">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Tổng quan 6 Miền Năng lực</h2>
+              <p className="text-gray-500 mb-8">Chi tiết các miền và các năng lực thành phần kèm ví dụ minh họa thực tiễn cho học sinh.</p>
+              
+              <div className="space-y-6">
+                {DOMAINS.map(domain => (
+                  <div key={domain.id} className="bg-gradient-to-r from-blue-50 to-transparent p-6 rounded-2xl border border-blue-100">
+                    <h3 className="text-xl font-bold text-blue-800 mb-2">{domain.name}</h3>
+                    <p className="text-gray-600 mb-4 italic">{domain.desc}</p>
+                    
+                    <div className="space-y-3 pl-0 md:pl-4">
+                      {domain.sub.map(sub => (
+                        <AccordionItem key={sub.id} title={`${sub.id}. ${sub.name}`}>
+                          <div className="bg-green-50 p-4 rounded-xl border border-green-100">
+                            <span className="font-semibold text-green-700 block mb-1">💡 Ví dụ thực tiễn:</span>
+                            <span className="text-green-800">{sub.example}</span>
+                          </div>
+                        </AccordionItem>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        function TabMatrix() {
+          return (
+            <div className="animate-fade-in-up">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Ma trận chi tiết các bậc năng lực (Bậc 1 - 5)</h2>
+              <p className="text-gray-500 mb-8">Ánh xạ chi tiết hành vi học sinh tương ứng với từng cấp học (Dựa trên File 3456 và Bảng Mapping).</p>
+              
+              <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border border-gray-200">
+                <table className="w-full text-left min-w-[1000px]">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-700 border-b border-gray-200">
+                      <th className="p-4 font-semibold w-1/5">Năng lực thành phần</th>
+                      <th className="p-4 font-semibold w-32 text-center text-blue-700 bg-blue-50">Bậc 1<br/><span className="text-xs font-normal">(Lớp 1-3)</span></th>
+                      <th className="p-4 font-semibold w-32 text-center text-indigo-700 bg-indigo-50">Bậc 2<br/><span className="text-xs font-normal">(Lớp 4-5)</span></th>
+                      <th className="p-4 font-semibold w-32 text-center text-purple-700 bg-purple-50">Bậc 3<br/><span className="text-xs font-normal">(Lớp 6-7)</span></th>
+                      <th className="p-4 font-semibold w-32 text-center text-pink-700 bg-pink-50">Bậc 4<br/><span className="text-xs font-normal">(Lớp 8-9)</span></th>
+                      <th className="p-4 font-semibold w-32 text-center text-rose-700 bg-rose-50">Bậc 5<br/><span className="text-xs font-normal">(Lớp 10-12)</span></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-sm">
+                    {DOMAINS.map(domain => (
+                      <React.Fragment key={domain.id}>
+                        <tr className="bg-gray-100/50"><td colSpan="6" className="p-3 font-bold text-gray-800">{domain.name}</td></tr>
+                        {domain.sub.map(sub => (
+                          <tr key={sub.id} className="hover:bg-blue-50/50 transition-colors">
+                            <td className="p-4 font-medium text-gray-700">{sub.id}. {sub.name}</td>
+                            {sub.matrix.map((desc, idx) => (
+                              <td key={idx} className="p-4 text-gray-600 align-top border-l border-gray-50">{desc}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        }
+
+        function TabLessonPlan() {
+          const [formData, setFormData] = useState({
+            grade: '6',
+            subject: SUBJECTS[0],
+            lessonName: '',
+            content: '',
+            template: '5512',
+            nlSo: '1.1'
+          });
+
+          const exportToWord = () => {
+            if(!formData.lessonName) {
+              alert("Vui lòng nhập Tên bài học trước khi xuất file!");
+              return;
             }
-            return pool;
-        };
-        const all50Questions = generate50Questions();
-
-        // ==========================================
-        // 2. HELPER FUNCTIONS
-        // ==========================================
-        const playAudio = (type) => {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                
-                if(type === 'success') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(523.25, ctx.currentTime); 
-                    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); 
-                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                    osc.start(); osc.stop(ctx.currentTime + 0.3);
-                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#0ea5e9', '#0284c7', '#38bdf8'] });
-                } else {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(300, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.4);
-                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                    osc.start(); osc.stop(ctx.currentTime + 0.4);
-                }
-            } catch(e) { console.log("Audio not supported"); }
-        };
-
-        const exportToWord = (htmlContent, fileNameStr) => {
-            const str = fileNameStr || "ke_hoach_bai_day";
-            const cleanName = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-            const filename = cleanName + '.doc';
-
-            const preHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-            <head><meta charset='utf-8'><title>Giáo Án</title>
-            <style>
-                body { font-family: 'Times New Roman', serif; font-size: 14pt; line-height: 1.5; padding: 20px; }
-                table { border-collapse: collapse; width: 100%; margin-top: 15px; margin-bottom: 15px; }
-                th, td { border: 1px solid #000000; padding: 8px; text-align: left; vertical-align: top; }
-                th { font-weight: bold; text-align: center; }
-                h1, h2, h3, h4 { margin-top: 15px; margin-bottom: 10px; }
-                .center { text-align: center; }
-                .bold { font-weight: bold; }
-            </style></head><body>`;
-            const postHtml = "</body></html>";
-            const fullHtml = preHtml + htmlContent + postHtml;
-
-            const blob = new Blob(['\ufeff', fullHtml], { type: 'application/msword' });
+            
+            // Thuật toán tạo File Word dạng Document từ HTML
+            const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+              <head>
+                <meta charset='utf-8'>
+                <title>Kế hoạch bài dạy</title>
+                <style>
+                  body { font-family: 'Times New Roman', serif; font-size: 14pt; }
+                  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                  th, td { border: 1px solid black; padding: 5px; text-align: left; }
+                  .center { text-align: center; }
+                  .bold { font-weight: bold; }
+                </style>
+              </head><body>`;
+            const footer = "</body></html>";
+            const htmlContent = document.getElementById('lesson-plan-preview').innerHTML;
+            const finalHtml = header + htmlContent + footer;
+            
+            const blob = new Blob(['\ufeff', finalHtml], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = filename;
+            link.download = `KHBD_${formData.template}_${formData.subject}_Khoi${formData.grade}.doc`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        };
+          };
 
-        // ==========================================
-        // 3. UI COMPONENTS (ICONS)
-        // ==========================================
-        const Icons = {
-            Database: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>,
-            Planner: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>,
-            Quiz: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>,
-            Search: () => <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>,
-            Download: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>,
-            ChevronDown: ({ className }) => <svg className={className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>,
-            Dictionary: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-        };
-
-        // ==========================================
-        // 4. MODULE 1: TRA CỨU HỆ THỐNG
-        // ==========================================
-        const LookupModule = () => {
-            const [tab, setTab] = useState('dict'); 
-            const [searchTerm, setSearchTerm] = useState("");
-            const [selectedComp, setSelectedComp] = useState(allCompetencies[0]);
-            
-            // State for Accordion Dictionary
-            const [expandedTerm, setExpandedTerm] = useState(null);
-
-            // State for 6 Domains Details
-            const [activeDomainId, setActiveDomainId] = useState(domainsData[0].id);
-
-            const filteredTerms = terminologyData.filter(t => 
-                t.term.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                t.desc.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-
-            return (
-                <div className="h-full flex flex-col space-y-4">
-                    {/* Tabs Navigation */}
-                    <div className="flex space-x-2 bg-white/80 backdrop-blur-md p-1.5 rounded-xl w-max border border-slate-200 shadow-sm relative z-20 overflow-x-auto">
-                        <button onClick={() => setTab('dict')} className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${tab === 'dict' ? 'bg-edu-600 text-white shadow-md' : 'text-slate-500 hover:text-edu-600 hover:bg-edu-50'}`}>
-                            <Icons.Dictionary /> Từ điển thuật ngữ
-                        </button>
-                        <button onClick={() => setTab('struct')} className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${tab === 'struct' ? 'bg-edu-600 text-white shadow-md' : 'text-slate-500 hover:text-edu-600 hover:bg-edu-50'}`}>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Cấu trúc 6 Miền
-                        </button>
-                        <button onClick={() => setTab('matrix')} className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${tab === 'matrix' ? 'bg-edu-600 text-white shadow-md' : 'text-slate-500 hover:text-edu-600 hover:bg-edu-50'}`}>
-                            <Icons.Database /> Lát cắt Ma trận
-                        </button>
-                    </div>
-
-                    <div className="flex-1 glass-panel rounded-3xl overflow-hidden flex flex-col relative z-10 border border-white/40 shadow-soft">
-                        
-                        {/* TAB 1: TỪ ĐIỂN */}
-                        {tab === 'dict' && (
-                            <div className="flex flex-col h-full animate-slide-in">
-                                <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                                    <div>
-                                        <h3 className="font-black text-xl text-slate-800">Thuật ngữ Số hóa</h3>
-                                        <p className="text-sm text-slate-500 font-medium mt-1">Căn cứ theo Điều 2, Thông tư 02/2025/TT-BGDĐT</p>
-                                    </div>
-                                    <div className="relative w-full md:w-80">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Icons.Search /></div>
-                                        <input type="text" className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-edu-500 outline-none text-sm shadow-inner transition-all bg-white" placeholder="Tìm kiếm thuật ngữ..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                                    </div>
-                                </div>
-                                <div className="flex-1 overflow-auto p-6 bg-slate-50/50 custom-scrollbar">
-                                    <div className="max-w-3xl mx-auto space-y-3 pb-8">
-                                        {filteredTerms.length > 0 ? filteredTerms.map((t, i) => {
-                                            const isExpanded = expandedTerm === i;
-                                            return (
-                                                <div key={i} className={`rounded-2xl border transition-all duration-300 overflow-hidden ${isExpanded ? 'border-edu-300 bg-white shadow-md' : 'border-slate-200 bg-white hover:border-edu-300 hover:shadow-sm'}`}>
-                                                    <button 
-                                                        className="w-full px-6 py-4 flex justify-between items-center focus:outline-none"
-                                                        onClick={() => setExpandedTerm(isExpanded ? null : i)}
-                                                    >
-                                                        <div className="flex items-center gap-4">
-                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm transition-colors ${isExpanded ? 'bg-edu-600 text-white shadow-lg' : 'bg-edu-50 text-edu-600'}`}>
-                                                                {i + 1}
-                                                            </div>
-                                                            <span className="font-black text-[16px] text-slate-800">{t.term}</span>
-                                                        </div>
-                                                        <Icons.ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'transform rotate-180 text-edu-600' : ''}`} />
-                                                    </button>
-                                                    
-                                                    {isExpanded && (
-                                                        <div className="px-6 pb-6 pt-2 animate-slide-down">
-                                                            <div className="pl-14 pr-2">
-                                                                <div className="w-full h-px bg-slate-100 mb-4"></div>
-                                                                <p className="text-slate-600 leading-relaxed font-medium text-[15px]">{t.desc}</p>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )
-                                        }) : (
-                                            <div className="text-center py-10 text-slate-400 font-medium">Không tìm thấy thuật ngữ phù hợp.</div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* TAB 2: CẤU TRÚC 6 MIỀN (Master-Detail View) */}
-                        {tab === 'struct' && (
-                            <div className="flex flex-col md:flex-row h-full animate-slide-in bg-slate-50/50 overflow-hidden">
-                                {/* Cột Trái: Danh sách 6 Miền */}
-                                <div className="w-full md:w-[40%] lg:w-[35%] h-full border-r border-slate-200 bg-white flex flex-col z-10">
-                                    <div className="p-5 border-b border-slate-100 bg-slate-50/80">
-                                        <h3 className="font-black text-lg text-slate-800">Danh mục Miền Năng lực</h3>
-                                        <p className="text-xs text-slate-500 font-medium mt-1">Chọn một miền để xem chi tiết</p>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
-                                        {domainsData.map(d => (
-                                            <button 
-                                                key={d.id} 
-                                                onClick={() => setActiveDomainId(d.id)}
-                                                className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-300 ${activeDomainId === d.id ? 'bg-edu-50 border-edu-500 shadow-md transform scale-[1.02]' : 'bg-white border-slate-100 hover:border-edu-200 hover:shadow-sm'}`}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shrink-0 ${activeDomainId === d.id ? 'bg-edu-600 text-white shadow-lg shadow-edu-500/30' : 'bg-slate-100 text-slate-500'}`}>
-                                                        {d.id.replace('M', '')}
-                                                    </div>
-                                                    <h4 className={`font-black text-[14px] leading-tight ${activeDomainId === d.id ? 'text-edu-800' : 'text-slate-600'}`}>{d.name}</h4>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Cột Phải: Nội dung chi tiết */}
-                                <div className="w-full md:w-[60%] lg:w-[65%] h-full overflow-y-auto custom-scrollbar bg-slate-50/50">
-                                    {(() => {
-                                        const activeDom = domainsData.find(d => d.id === activeDomainId);
-                                        return (
-                                            <div className="p-6 md:p-10 flex flex-col gap-8 animate-slide-in pb-20">
-                                                {/* Header Chi tiết */}
-                                                <div>
-                                                    <div className="inline-block px-4 py-1.5 rounded-full bg-edu-100 text-edu-700 font-bold text-xs uppercase tracking-widest mb-4 shadow-sm border border-edu-200">Chi tiết miền năng lực số</div>
-                                                    <h2 className="text-2xl md:text-3xl font-black text-slate-800 leading-tight">{activeDom.name}</h2>
-                                                </div>
-
-                                                {/* Card Mô tả */}
-                                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative pt-8">
-                                                    <div className="absolute top-0 left-6 -translate-y-1/2 bg-slate-800 text-white px-4 py-1 rounded-lg text-xs font-black tracking-widest uppercase shadow-md">Mô tả tổng quan</div>
-                                                    <p className="text-slate-600 leading-relaxed font-medium text-[15px]">{activeDom.desc}</p>
-                                                </div>
-
-                                                {/* Card Các năng lực thành phần */}
-                                                <div>
-                                                    <h3 className="font-black text-lg text-edu-800 mb-4 flex items-center gap-2">
-                                                        <span className="w-8 h-8 rounded-lg bg-edu-100 text-edu-600 flex items-center justify-center">
-                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002 2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> 
-                                                        </span>
-                                                        Thành phần năng lực (TT02)
-                                                    </h3>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                        {activeDom.subs.map((s, idx) => (
-                                                            <div key={idx} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-start gap-3 hover:border-edu-400 hover:shadow-md transition-all">
-                                                                <span className="w-6 h-6 rounded-md bg-edu-50 text-edu-600 flex items-center justify-center shrink-0 text-xs font-black border border-edu-100">{idx + 1}</span>
-                                                                <span className="text-sm font-bold text-slate-700 mt-0.5 leading-snug">{s}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                {/* Card Ví dụ minh chứng */}
-                                                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-200 shadow-sm relative pt-8">
-                                                    <div className="absolute top-0 left-6 -translate-y-1/2 bg-emerald-600 text-white px-4 py-1 rounded-lg text-xs font-black tracking-widest uppercase shadow-md flex items-center gap-1.5">
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 
-                                                        Ví dụ minh chứng ở học sinh
-                                                    </div>
-                                                    <p className="text-emerald-900/80 leading-relaxed font-bold text-[15px]">{activeDom.example}</p>
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* TAB 3: MA TRẬN 5 BẬC */}
-                        {tab === 'matrix' && (
-                            <div className="flex flex-col h-full animate-slide-in">
-                                <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex flex-col md:flex-row items-center gap-4">
-                                    <label className="font-black text-slate-800 whitespace-nowrap text-lg">ĐỐI CHIẾU MA TRẬN NĂNG LỰC:</label>
-                                    <select 
-                                        className="w-full md:flex-1 p-3 border-2 border-slate-200 rounded-xl focus:border-edu-500 outline-none bg-white font-bold text-edu-700 shadow-sm cursor-pointer transition-colors"
-                                        value={selectedComp} onChange={e => setSelectedComp(e.target.value)}
-                                    >
-                                        {domainsData.map((d, i) => (
-                                            <optgroup key={i} label={d.name}>
-                                                {d.subs.map((s, j) => <option key={j} value={s}>{s}</option>)}
-                                            </optgroup>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="flex-1 p-8 overflow-auto custom-scrollbar bg-slate-50/50">
-                                    <div className="grid grid-cols-1 md:grid-cols-5 gap-5 pb-10">
-                                        {[
-                                            { lvl: "Bậc 1", gr: "Lớp 1, 2, 3", color: "border-sky-200 bg-white text-sky-900 shadow-sky-100", badge: "bg-sky-100 text-sky-700", header: "bg-sky-50", text: matrixData[selectedComp].m1 },
-                                            { lvl: "Bậc 2", gr: "Lớp 4, 5", color: "border-emerald-200 bg-white text-emerald-900 shadow-emerald-100", badge: "bg-emerald-100 text-emerald-700", header: "bg-emerald-50", text: matrixData[selectedComp].m2 },
-                                            { lvl: "Bậc 3", gr: "Lớp 6, 7", color: "border-amber-200 bg-white text-amber-900 shadow-amber-100", badge: "bg-amber-100 text-amber-700", header: "bg-amber-50", text: matrixData[selectedComp].m3 },
-                                            { lvl: "Bậc 4", gr: "Lớp 8, 9", color: "border-purple-200 bg-white text-purple-900 shadow-purple-100", badge: "bg-purple-100 text-purple-700", header: "bg-purple-50", text: matrixData[selectedComp].m4 },
-                                            { lvl: "Bậc 5", gr: "Lớp 10, 11, 12", color: "border-rose-200 bg-white text-rose-900 shadow-rose-100", badge: "bg-rose-100 text-rose-700", header: "bg-rose-50", text: matrixData[selectedComp].m5 },
-                                        ].map((m, i) => (
-                                            <div key={i} className={`border-2 rounded-2xl flex flex-col shadow-lg transition-transform hover:-translate-y-1 overflow-hidden ${m.color}`}>
-                                                <div className={`p-4 ${m.header} border-b border-current border-opacity-10 flex justify-between items-center`}>
-                                                    <div className="font-black text-xl">{m.lvl}</div>
-                                                    <div className={`text-[10px] font-black uppercase px-2 py-1 rounded-md ${m.badge}`}>{m.gr}</div>
-                                                </div>
-                                                <div className="p-5 flex-1 text-sm font-semibold leading-relaxed text-slate-600 bg-white">
-                                                    {m.text}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        // ==========================================
-        // 5. MODULE 2: TRỢ LÝ GIÁO ÁN AI
-        // ==========================================
-        const PlannerModule = () => {
-            const [form, setForm] = useState({ grade: '1', subject: 'Tin học', lesson: 'Tập sử dụng chuột máy tính', content: 'Cách cầm chuột, thao tác click trái, click phải, di chuyển chuột.' });
-            const [selectedComps, setSelectedComps] = useState(["1.1. Vận hành thiết bị số"]);
-            const [preview, setPreview] = useState(false);
-
-            const planType = parseInt(form.grade) <= 5 ? "Công văn 2345 (Cấp Tiểu học)" : "Công văn 5512 (Cấp Trung học)";
-            const isValid = form.lesson.trim() !== '' && form.content.trim() !== '' && selectedComps.length > 0;
-
-            const toggleComp = (comp) => {
-                if (selectedComps.includes(comp)) setSelectedComps(selectedComps.filter(c => c !== comp));
-                else setSelectedComps([...selectedComps, comp]);
-            };
-
-            const generateRealHTML = () => {
-                const acts = [
-                    { name: "Khởi động", time: "5 phút", detail: `Học sinh xem video ngắn liên quan đến ${form.lesson}. Khơi gợi sự tò mò và tích hợp sử dụng thiết bị hiển thị.` },
-                    { name: "Hình thành kiến thức mới", time: "15 phút", detail: `Giáo viên giảng giải nội dung: ${form.content}. Học sinh thực hành nhận biết và sử dụng: ${selectedComps.join(", ")}.` },
-                    { name: "Luyện tập", time: "10 phút", detail: "Học sinh làm bài tập nhóm trên thiết bị số/phiếu học tập." },
-                    { name: "Vận dụng", time: "5 phút", detail: "Học sinh ứng dụng kiến thức số vào giải quyết 1 tình huống thực tế." }
-                ];
-
-                return `
-                    <div class="center bold" style="font-size: 16pt;">KẾ HOẠCH BÀI DẠY</div>
-                    <div class="center" style="font-style: italic; margin-bottom: 20px;">(Cấu trúc minh họa định hướng theo ${planType})</div>
-                    
-                    <p><span class="bold">Tên bài học:</span> ${form.lesson.toUpperCase()}</p>
-                    <p><span class="bold">Môn học:</span> ${form.subject} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="bold">Khối lớp:</span> ${form.grade}</p>
-                    
-                    <h3>I. YÊU CẦU CẦN ĐẠT</h3>
-                    <h4>1. Về năng lực đặc thù (Môn học)</h4>
-                    <p>- Nắm vững kiến thức trọng tâm: ${form.content.replace(/\n/g, '<br/>')}</p>
-                    
-                    <h4>2. Về năng lực số (Tích hợp Thông tư 02/2025/TT-BGDĐT)</h4>
-                    <ul>
-                        ${selectedComps.map(c => `<li>Phát triển thành phần: <span class="bold">${c}</span>.</li>`).join('')}
-                    </ul>
-                    
-                    <h3>II. ĐỒ DÙNG DẠY HỌC</h3>
-                    <p>- Giáo viên: Máy tính, máy chiếu, bài giảng điện tử.</p>
-                    <p>- Học sinh: SGK, thiết bị học tập, bảng con (hoặc thiết bị thông minh nếu có).</p>
-
-                    <h3>III. CÁC HOẠT ĐỘNG DẠY HỌC CHỦ YẾU</h3>
-                    <table>
-                        <tr>
-                            <th style="width: 25%;">Hoạt động của Giáo viên (Thời lượng)</th>
-                            <th style="width: 50%;">Nội dung / Tiến trình</th>
-                            <th style="width: 25%;">Năng lực số cần đạt</th>
-                        </tr>
-                        ${acts.map(a => `
-                        <tr>
-                            <td class="bold">${a.name}<br/>(${a.time})</td>
-                            <td>${a.detail}</td>
-                            <td>${selectedComps.length > 0 ? selectedComps[Math.floor(Math.random()*selectedComps.length)] : 'Kỹ năng số cơ bản'}</td>
-                        </tr>
-                        `).join('')}
-                    </table>
-                    <p style="text-align: right; margin-top: 30px;"><i>Giáo viên ký tên</i></p>
-                `;
-            };
-
-            return (
-                <div className="h-full flex flex-col lg:flex-row gap-6">
-                    {/* INPUT FORM */}
-                    <div className="w-full lg:w-5/12 flex flex-col space-y-4 h-full">
-                        <div className="glass-panel rounded-3xl p-6 md:p-8 flex-1 overflow-auto custom-scrollbar flex flex-col gap-6 shadow-soft">
-                            <div>
-                                <h3 className="font-black text-lg text-edu-800 mb-2 flex items-center gap-2">
-                                    <span className="w-8 h-8 rounded-lg bg-edu-100 text-edu-600 flex items-center justify-center text-sm shadow-sm">1</span> 
-                                    Thông tin bài dạy
-                                </h3>
-                                
-                                <div className="grid grid-cols-2 gap-4 mb-4 mt-4">
-                                    <div>
-                                        <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Khối lớp</label>
-                                        <select className="w-full p-3 border-2 border-slate-200 rounded-xl bg-slate-50 outline-none focus:border-edu-500 focus:bg-white transition-colors cursor-pointer font-bold text-edu-700" value={form.grade} onChange={e => { setForm({...form, grade: e.target.value}); setPreview(false); }}>
-                                            {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => <option key={n} value={n}>Lớp {n}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Quy chuẩn Mẫu</label>
-                                        <div className="w-full p-3 border-2 border-slate-100 rounded-xl bg-slate-100 text-slate-500 font-bold text-xs h-[52px] flex items-center shadow-inner-soft">
-                                            {planType}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="mb-4">
-                                    <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Môn học</label>
-                                    <input type="text" className="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-edu-500 outline-none transition-colors font-semibold" value={form.subject} onChange={e => {setForm({...form, subject: e.target.value}); setPreview(false);}} placeholder="VD: Tin học, Toán học..." />
-                                </div>
-                                <div className="mb-4">
-                                    <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Tên bài học</label>
-                                    <input type="text" className="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-edu-500 outline-none transition-colors font-semibold" value={form.lesson} onChange={e => {setForm({...form, lesson: e.target.value}); setPreview(false);}} placeholder="VD: Tìm kiếm thông tin trên Internet..." />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Nội dung cốt lõi</label>
-                                    <textarea className="w-full p-3 border-2 border-slate-200 rounded-xl h-24 focus:border-edu-500 outline-none transition-colors font-semibold custom-scrollbar leading-relaxed" value={form.content} onChange={e => {setForm({...form, content: e.target.value}); setPreview(false);}} placeholder="Mô tả tóm tắt kiến thức trọng tâm..."></textarea>
-                                </div>
-                            </div>
-
-                            <div>
-                                <h3 className="font-black text-lg text-edu-800 mb-2 flex items-center gap-2">
-                                    <span className="w-8 h-8 rounded-lg bg-edu-100 text-edu-600 flex items-center justify-center text-sm shadow-sm">2</span> 
-                                    Map Năng lực số (TT02)
-                                </h3>
-                                <div className="h-[200px] overflow-y-auto border-2 border-slate-200 rounded-xl p-3 bg-slate-50 custom-scrollbar shadow-inner-soft space-y-1">
-                                    {allCompetencies.map((comp, i) => (
-                                        <label key={i} className="flex items-start gap-3 p-2 hover:bg-white rounded-lg cursor-pointer border border-transparent hover:border-slate-200 transition-colors hover:shadow-sm">
-                                            <input type="checkbox" className="mt-1 w-4 h-4 accent-edu-600 rounded" checked={selectedComps.includes(comp)} onChange={() => {toggleComp(comp); setPreview(false);}} />
-                                            <span className="text-sm font-bold text-slate-700 leading-snug">{comp}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <button 
-                            disabled={!isValid}
-                            onClick={() => setPreview(true)}
-                            className={`w-full py-5 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-2 ${isValid ? 'bg-gradient-to-r from-edu-600 to-edu-500 hover:from-edu-700 hover:to-edu-600 text-white shadow-lg shadow-edu-500/30 transform hover:-translate-y-1' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
-                        >
-                            <Icons.Planner /> XUẤT KẾ HOẠCH BÀI DẠY (PREVIEW)
-                        </button>
-                    </div>
-
-                    {/* PREVIEW & EXPORT */}
-                    <div className="w-full lg:w-7/12 flex flex-col h-full glass-panel rounded-3xl overflow-hidden shadow-soft">
-                        <div className="p-5 bg-slate-800 text-white flex justify-between items-center shadow-md z-10">
-                            <div className="flex items-center gap-3">
-                                <div className="flex gap-1.5">
-                                    <div className="w-3.5 h-3.5 rounded-full bg-rose-500"></div>
-                                    <div className="w-3.5 h-3.5 rounded-full bg-amber-500"></div>
-                                    <div className="w-3.5 h-3.5 rounded-full bg-emerald-500"></div>
-                                </div>
-                                <h3 className="font-bold ml-2 text-sm uppercase tracking-wider text-slate-300">Live Preview</h3>
-                            </div>
-                            {preview && (
-                                <button 
-                                    onClick={() => exportToWord(generateRealHTML(), form.lesson)}
-                                    className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 rounded-lg text-sm font-black shadow-lg transition-transform hover:-translate-y-0.5 flex items-center gap-2 text-white"
-                                >
-                                    <Icons.Download /> Xuất File Word (.doc)
-                                </button>
-                            )}
-                        </div>
-                        <div className="flex-1 p-6 md:p-10 overflow-auto custom-scrollbar bg-slate-100">
-                            {preview ? (
-                                <div className="bg-white p-8 md:p-14 min-h-full border border-slate-200 shadow-xl text-slate-800 max-w-4xl mx-auto origin-top animate-slide-in rounded-sm" 
-                                     style={{fontFamily: "'Times New Roman', serif"}}
-                                     dangerouslySetInnerHTML={{__html: generateRealHTML()}}>
-                                </div>
-                            ) : (
-                                <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
-                                    <Icons.Planner />
-                                    <p className="mt-4 font-bold text-sm tracking-wide">Mẫu giáo án sẽ hiển thị tại đây...</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // ==========================================
-        // 6. MODULE 3: ĐẤU TRƯỜNG TỰ HỌC (50 Câu & Ôn lỗi)
-        // ==========================================
-        const QuizModule = () => {
-            const [mode, setMode] = useState('intro'); // intro, playing, result, review
-            const [activeQuestions, setActiveQuestions] = useState([]); 
-            const [currentIndex, setCurrentIndex] = useState(0);
-            const [score, setScore] = useState(0);
-            const [status, setStatus] = useState("idle"); // idle, correct, wrong
-            const [wrongList, setWrongList] = useState([]); 
-            
-            // Answers state
-            const [singleAns, setSingleAns] = useState(null);
-            const [multiAns, setMultiAns] = useState([]);
-            const [matchAns, setMatchAns] = useState({});
-
-            const startQuiz = () => {
-                setActiveQuestions(all50Questions); 
-                setCurrentIndex(0);
-                setScore(0);
-                setWrongList([]);
-                setStatus('idle');
-                resetInputs();
-                setMode('playing');
-            };
-
-            const startReview = () => {
-                setActiveQuestions(wrongList); 
-                setCurrentIndex(0);
-                setScore(0);
-                setWrongList([]); 
-                setStatus('idle');
-                resetInputs();
-                setMode('review');
-            };
-
-            const resetInputs = () => { setSingleAns(null); setMultiAns([]); setMatchAns({}); };
-
-            const currentQ = activeQuestions[currentIndex];
-
-            const handleSubmit = () => {
-                let isCorrect = false;
-                if (currentQ.type === 'single' || currentQ.type === 'tf' || currentQ.type === 'fill') {
-                    isCorrect = singleAns === currentQ.correct[0];
-                } else if (currentQ.type === 'multi') {
-                    const sortedAns = [...multiAns].sort();
-                    const sortedCorr = [...currentQ.correct].sort();
-                    isCorrect = JSON.stringify(sortedAns) === JSON.stringify(sortedCorr);
-                } else if (currentQ.type === 'match') {
-                    isCorrect = true;
-                    currentQ.pairs.forEach((p, idx) => { if (matchAns[idx] !== p.rightAns) isCorrect = false; });
-                }
-
-                if (isCorrect) {
-                    setStatus("correct");
-                    setScore(score + 1);
-                    playAudio('success');
-                } else {
-                    setStatus("wrong");
-                    setWrongList([...wrongList, currentQ]); 
-                    playAudio('error');
-                }
-            };
-
-            const handleNext = () => {
-                if (currentIndex < activeQuestions.length - 1) {
-                    setCurrentIndex(currentIndex + 1);
-                    setStatus("idle");
-                    resetInputs();
-                } else {
-                    setMode('result');
-                }
-            };
-
-            if (mode === 'intro') {
-                return (
-                    <div className="h-full flex items-center justify-center">
-                        <div className="glass-panel p-12 rounded-3xl max-w-xl text-center shadow-2xl animate-slide-in">
-                            <div className="w-24 h-24 bg-gradient-to-br from-edu-500 to-edu-700 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-lg shadow-edu-500/40 transform rotate-3">
-                                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            </div>
-                            <h2 className="text-4xl font-black text-slate-800 mb-4 tracking-tight">Đấu Trường Số Hóa</h2>
-                            <p className="text-slate-500 mb-10 font-medium text-lg leading-relaxed">Hệ thống Đánh giá Năng lực trực tuyến với 50 câu hỏi đa dạng. Tự động ghi nhận và phân tích lỗi sai giúp bạn nắm vững Thông tư 02.</p>
-                            
-                            <div className="flex flex-col sm:flex-row justify-center gap-4">
-                                <button onClick={startQuiz} className="px-10 py-4 bg-edu-600 hover:bg-edu-700 text-white text-lg font-black rounded-2xl shadow-xl shadow-edu-500/30 transition-all hover:-translate-y-1 flex items-center justify-center gap-3">
-                                    BẮT ĐẦU NGAY <Icons.Quiz />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            if (mode === 'result') {
-                const total = activeQuestions.length;
-                const percent = Math.round((score / total) * 100);
-                const hasWrongs = wrongList.length > 0;
+          return (
+            <div className="animate-fade-in-up flex flex-col lg:flex-row gap-8">
+              {/* Form Area */}
+              <div className="w-full lg:w-1/3 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                  <IconFileText className="text-blue-500 w-6 h-6"/> Khởi tạo Giáo án
+                </h2>
                 
-                return (
-                    <div className="h-full flex items-center justify-center">
-                        <div className="glass-panel p-12 rounded-3xl text-center max-w-lg w-full border-t-[10px] border-t-edu-500 shadow-2xl animate-slide-in">
-                            <h2 className="text-3xl font-black text-slate-800 mb-2">Báo Cáo Năng Lực</h2>
-                            <p className="text-slate-500 mb-8 font-bold">Bạn đã hoàn thành {activeQuestions.length} câu hỏi.</p>
-                            
-                            <div className="w-48 h-48 mx-auto rounded-full border-[14px] border-slate-100 flex items-center justify-center mb-8 relative bg-white shadow-inner">
-                                <div className="text-center">
-                                    <div className="text-6xl font-black text-edu-600 leading-none">{score}</div>
-                                    <div className="text-base font-bold text-slate-400 mt-2 tracking-widest">/ {total}</div>
-                                </div>
-                                <svg className="absolute inset-0 w-full h-full transform -rotate-90 origin-center">
-                                    <circle cx="50%" cy="50%" r="42%" fill="none" stroke="#0ea5e9" strokeWidth="14" strokeDasharray={`${percent * 2.64} 300`} strokeLinecap="round" />
-                                </svg>
-                            </div>
-                            
-                            <p className="font-black text-2xl text-slate-700 mb-2">
-                                {percent >= 90 ? "🏆 Xuất sắc! Bậc thầy năng lực số." : percent >= 60 ? "👍 Rất tốt! Cần luyện tập thêm một chút." : "💪 Cần cố gắng ôn tập thêm nhé!"}
-                            </p>
-                            
-                            <div className="mt-10 space-y-4">
-                                {hasWrongs && (
-                                    <button onClick={startReview} className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-lg transition-transform hover:-translate-y-1 shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2">
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                        ÔN TẬP LẠI {wrongList.length} CÂU SAI
-                                    </button>
-                                )}
-                                <button onClick={() => setMode('intro')} className="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black text-lg transition-colors">
-                                    QUAY VỀ TRANG CHỦ
-                                </button>
-                            </div>
-                        </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mẫu KHBD</label>
+                    <select 
+                      className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      value={formData.template}
+                      onChange={e => setFormData({...formData, template: e.target.value})}
+                    >
+                      <option value="5512">Công văn 5512 (THCS/THPT)</option>
+                      <option value="2345">Công văn 2345 (Tiểu học)</option>
+                    </select>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="w-1/3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Khối lớp</label>
+                      <select 
+                        className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        value={formData.grade}
+                        onChange={e => setFormData({...formData, grade: e.target.value})}
+                      >
+                        {[...Array(12)].map((_, i) => <option key={i+1} value={i+1}>Khối {i+1}</option>)}
+                      </select>
                     </div>
-                );
+                    <div className="w-2/3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Môn học</label>
+                      <select 
+                        className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        value={formData.subject}
+                        onChange={e => setFormData({...formData, subject: e.target.value})}
+                      >
+                        {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tên bài học</label>
+                    <input 
+                      type="text" 
+                      placeholder="Nhập tên bài dạy..."
+                      className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      value={formData.lessonName}
+                      onChange={e => setFormData({...formData, lessonName: e.target.value})}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nội dung cốt lõi</label>
+                    <textarea 
+                      rows="3"
+                      placeholder="Nhập nội dung tóm tắt..."
+                      className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      value={formData.content}
+                      onChange={e => setFormData({...formData, content: e.target.value})}
+                    ></textarea>
+                  </div>
+
+                  <button 
+                    onClick={exportToWord}
+                    className="w-full py-3 mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                  >
+                    <IconDownload className="w-5 h-5"/> Xuất File Word (.doc)
+                  </button>
+                </div>
+              </div>
+
+              {/* Preview Area */}
+              <div className="w-full lg:w-2/3 bg-white p-8 rounded-2xl shadow-inner border border-gray-200 overflow-y-auto max-h-[70vh]">
+                <div className="flex justify-between items-center border-b pb-2 mb-4">
+                  <span className="text-gray-400 font-medium text-sm">Bản xem trước (Preview)</span>
+                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Auto-Sync</span>
+                </div>
+                
+                {/* Hidden/Preview Div that will be exported to Word */}
+                <div id="lesson-plan-preview" className="font-serif text-[13pt] text-black">
+                  <div style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: '20px' }}>
+                    KẾ HOẠCH BÀI DẠY MÔN {formData.subject.toUpperCase()} LỚP {formData.grade}<br/>
+                    (Theo Công văn {formData.template})
+                  </div>
+                  <div style={{ fontWeight: 'bold' }}>TÊN BÀI DẠY: {formData.lessonName || '........................................'}</div>
+                  <div>Môn học/Hoạt động giáo dục: {formData.subject}; lớp: {formData.grade}</div>
+                  <div>Thời gian thực hiện: ..... tiết</div>
+                  
+                  <div style={{ fontWeight: 'bold', marginTop: '15px' }}>I. YÊU CẦU CẦN ĐẠT</div>
+                  <div><span style={{ fontWeight: 'bold' }}>1. Về năng lực đặc thù:</span> Giải quyết nội dung: {formData.content || '........................................'}</div>
+                  <div><span style={{ fontWeight: 'bold' }}>2. Về năng lực số (Tích hợp TT02):</span> Học sinh vận dụng các công cụ kỹ thuật số để giải quyết nhiệm vụ học tập.</div>
+                  <div><span style={{ fontWeight: 'bold' }}>3. Về phẩm chất:</span> Chăm chỉ, trách nhiệm trong môi trường số.</div>
+
+                  <div style={{ fontWeight: 'bold', marginTop: '15px' }}>II. THIẾT BỊ DẠY HỌC VÀ HỌC LIỆU SỐ</div>
+                  <div>- Giáo viên: Máy tính, máy chiếu, tài liệu số.</div>
+                  <div>- Học sinh: Thiết bị thông minh (nếu có), tài khoản truy cập.</div>
+
+                  <div style={{ fontWeight: 'bold', marginTop: '15px' }}>III. TIẾN TRÌNH DẠY HỌC</div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }} border="1">
+                    <thead>
+                      <tr>
+                        <th style={{ padding: '5px', textAlign: 'center' }}>Hoạt động</th>
+                        <th style={{ padding: '5px', textAlign: 'center' }}>Mục tiêu</th>
+                        <th style={{ padding: '5px', textAlign: 'center' }}>Nội dung/Năng lực số</th>
+                        <th style={{ padding: '5px', textAlign: 'center' }}>Sản phẩm học tập</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: '5px' }}>1. Mở đầu</td>
+                        <td style={{ padding: '5px' }}>Tạo hứng thú</td>
+                        <td style={{ padding: '5px' }}>Truy cập Quizizz/Kahoot</td>
+                        <td style={{ padding: '5px' }}>Kết quả game</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '5px' }}>2. Hình thành KT mới</td>
+                        <td style={{ padding: '5px' }}>Nắm bắt {formData.lessonName}</td>
+                        <td style={{ padding: '5px' }}>Tìm kiếm thông tin (NL 1.1)</td>
+                        <td style={{ padding: '5px' }}>Phiếu học tập/Mindmap số</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '5px' }}>3. Luyện tập/Vận dụng</td>
+                        <td style={{ padding: '5px' }}>Thực hành</td>
+                        <td style={{ padding: '5px' }}>Nộp bài qua Google Classroom</td>
+                        <td style={{ padding: '5px' }}>Bài làm hoàn thiện</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        function TabQuiz() {
+          const [currentQ, setCurrentQ] = useState(0);
+          const [score, setScore] = useState(0);
+          const [selectedAns, setSelectedAns] = useState(null);
+          const [isAnswered, setIsAnswered] = useState(false);
+          const [showResult, setShowResult] = useState(false);
+          const [wrongAnswers, setWrongAnswers] = useState([]);
+          const [reviewMode, setReviewMode] = useState(false);
+
+          const questions = reviewMode ? wrongAnswers : QUIZ_DATA;
+          const q = questions[currentQ];
+
+          const handleAnswer = (index) => {
+            if (isAnswered) return;
+            setSelectedAns(index);
+            setIsAnswered(true);
+
+            if (index === q.ans) {
+              if (!reviewMode) setScore(score + 1);
+            } else {
+              if (!reviewMode) setWrongAnswers([...wrongAnswers, q]);
             }
+          };
 
-            const renderInput = () => {
-                if (currentQ.type === 'single' || currentQ.type === 'tf') {
-                    return currentQ.options.map((opt, i) => (
-                        <label key={i} className={`block p-5 border-2 rounded-2xl cursor-pointer transition-all ${singleAns === i ? 'border-edu-500 bg-edu-50 shadow-md transform -translate-y-1' : 'border-slate-200 bg-white hover:border-edu-300 hover:shadow-sm'}`}>
-                            <input type="radio" className="hidden" checked={singleAns === i} onChange={() => setSingleAns(i)} disabled={status !== 'idle'} />
-                            <div className="flex items-center gap-4">
-                                <div className={`w-7 h-7 rounded-full border-[3px] flex items-center justify-center shrink-0 transition-colors ${singleAns === i ? 'border-edu-500 bg-white' : 'border-slate-300'}`}>
-                                    {singleAns === i && <div className="w-3.5 h-3.5 bg-edu-500 rounded-full"></div>}
-                                </div>
-                                <span className="font-bold text-slate-700 text-lg">{opt}</span>
-                            </div>
-                        </label>
-                    ));
-                }
-                if (currentQ.type === 'multi') {
-                    return currentQ.options.map((opt, i) => {
-                        const isChecked = multiAns.includes(i);
-                        return (
-                            <label key={i} className={`block p-5 border-2 rounded-2xl cursor-pointer transition-all ${isChecked ? 'border-edu-500 bg-edu-50 shadow-md transform -translate-y-1' : 'border-slate-200 bg-white hover:border-edu-300 hover:shadow-sm'}`}>
-                                <input type="checkbox" className="hidden" checked={isChecked} disabled={status !== 'idle'}
-                                    onChange={() => {
-                                        if(isChecked) setMultiAns(multiAns.filter(x => x !== i));
-                                        else setMultiAns([...multiAns, i]);
-                                    }} 
-                                />
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-7 h-7 rounded-lg border-[3px] flex items-center justify-center shrink-0 transition-colors ${isChecked ? 'bg-edu-500 border-edu-500' : 'border-slate-300 bg-white'}`}>
-                                        {isChecked && <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3.5" d="M5 13l4 4L19 7"></path></svg>}
-                                    </div>
-                                    <span className="font-bold text-slate-700 text-lg">{opt}</span>
-                                </div>
-                            </label>
-                        );
-                    });
-                }
-                if (currentQ.type === 'fill') {
-                    const parts = currentQ.q.split("_________");
-                    return (
-                        <div className="text-xl md:text-2xl font-bold leading-loose bg-white p-8 rounded-2xl border-2 border-slate-200 shadow-sm text-slate-700 text-center md:text-left">
-                            {parts[0].replace(/\[Câu \d+\] /g, '')}
-                            <select 
-                                className="mx-2 px-3 py-2 font-black text-edu-700 bg-edu-50 border-b-4 border-edu-500 outline-none rounded-t shadow-sm appearance-none cursor-pointer transition-colors focus:bg-edu-100"
-                                value={singleAns !== null ? singleAns : ""}
-                                onChange={e => setSingleAns(parseInt(e.target.value))}
-                                disabled={status !== 'idle'}
-                            >
-                                <option value="" disabled>___ CHỌN ___</option>
-                                {currentQ.options.map((opt, i) => <option key={i} value={i}>{opt}</option>)}
-                            </select>
-                            {parts[1]}
-                        </div>
-                    );
-                }
-                if (currentQ.type === 'match') {
-                    return (
-                        <div className="space-y-4">
-                            {currentQ.pairs.map((p, idx) => (
-                                <div key={idx} className="flex flex-col md:flex-row items-center gap-4 bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-sm">
-                                    <div className="w-full md:w-1/3 font-black text-lg bg-slate-50 p-4 rounded-xl border border-slate-200 text-center text-edu-800">{p.left}</div>
-                                    <div className="hidden md:block text-slate-300 font-bold">⟶</div>
-                                    <select 
-                                        className="w-full md:flex-1 p-4 border-2 border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-700 outline-none focus:border-edu-500 focus:bg-white transition-colors cursor-pointer text-center md:text-left"
-                                        value={matchAns[idx] || ""}
-                                        onChange={e => setMatchAns({...matchAns, [idx]: e.target.value})}
-                                        disabled={status !== 'idle'}
-                                    >
-                                        <option value="" disabled>-- Bấm để ghép nối --</option>
-                                        {p.rightOpts.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
-                                    </select>
-                                </div>
-                            ))}
-                        </div>
-                    );
-                }
-            };
+          const handleNext = () => {
+            if (currentQ < questions.length - 1) {
+              setCurrentQ(currentQ + 1);
+              setSelectedAns(null);
+              setIsAnswered(false);
+            } else {
+              setShowResult(true);
+            }
+          };
 
-            const canSubmit = () => {
-                if(currentQ.type === 'single' || currentQ.type === 'tf' || currentQ.type === 'fill') return singleAns !== null;
-                if(currentQ.type === 'multi') return multiAns.length > 0;
-                if(currentQ.type === 'match') return Object.keys(matchAns).length === currentQ.pairs.length;
-                return false;
-            };
+          const restart = () => {
+            setCurrentQ(0);
+            setScore(0);
+            setSelectedAns(null);
+            setIsAnswered(false);
+            setShowResult(false);
+            setWrongAnswers([]);
+            setReviewMode(false);
+          };
 
+          const startReview = () => {
+            setCurrentQ(0);
+            setSelectedAns(null);
+            setIsAnswered(false);
+            setShowResult(false);
+            setReviewMode(true);
+          };
+
+          if (showResult) {
+            const percent = Math.round((score / QUIZ_DATA.length) * 100);
+            const isPass = percent >= 80;
+            
             return (
-                <div className="h-full flex flex-col max-w-4xl mx-auto w-full animate-slide-in">
-                    <div className="mb-6 flex justify-between items-center glass-panel p-4 rounded-2xl shadow-soft">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-edu-600 text-white flex items-center justify-center font-black text-xl shadow-md">{currentIndex + 1}</div>
-                            <span className="font-bold text-slate-400 uppercase tracking-widest text-sm">/ {activeQuestions.length} CÂU {mode === 'review' && '(ÔN TẬP)'}</span>
-                        </div>
-                        <div className="px-6 py-3 bg-slate-100 border border-slate-200 rounded-xl font-black text-edu-700 text-xl shadow-inner-soft">
-                            Điểm: {score}
-                        </div>
-                    </div>
-
-                    <div className="glass-panel flex-1 p-6 md:p-10 rounded-3xl flex flex-col relative overflow-hidden custom-scrollbar shadow-soft">
-                        {(currentQ.type !== 'fill') && (
-                            <h2 className="text-2xl md:text-3xl font-black text-slate-800 mb-8 leading-tight border-l-[6px] border-edu-500 pl-5">{currentQ.q}</h2>
-                        )}
-                        
-                        <div className="space-y-4 flex-1">
-                            {renderInput()}
-                        </div>
-
-                        {status !== 'idle' && (
-                            <div className={`mt-8 p-6 rounded-2xl border-2 shadow-lg animate-slide-in ${status === 'correct' ? 'bg-emerald-50 border-emerald-500 text-emerald-900' : 'bg-rose-50 border-rose-500 text-rose-900'}`}>
-                                <div className="font-black text-2xl mb-3 flex items-center gap-2">
-                                    {status === 'correct' ? 
-                                        <><svg className="w-8 h-8 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg> Chính xác!</> : 
-                                        <><svg className="w-8 h-8 text-rose-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path></svg> Rất tiếc, sai rồi!</>
-                                    }
-                                </div>
-                                <div className="text-lg font-medium leading-relaxed opacity-90">{currentQ.explain}</div>
-                            </div>
-                        )}
-
-                        <div className="mt-8 flex justify-end">
-                            {status === 'idle' ? (
-                                <button onClick={handleSubmit} disabled={!canSubmit()} className={`px-12 py-5 rounded-2xl font-black text-lg transition-all ${canSubmit() ? 'bg-edu-600 text-white hover:bg-edu-700 shadow-xl shadow-edu-500/30 transform hover:-translate-y-1' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
-                                    KIỂM TRA ĐÁP ÁN
-                                </button>
-                            ) : (
-                                <button onClick={handleNext} className="px-12 py-5 bg-slate-800 text-white rounded-2xl font-black text-lg hover:bg-slate-900 transition-all shadow-xl transform hover:-translate-y-1 flex items-center gap-3">
-                                    {currentIndex < activeQuestions.length - 1 ? 'CÂU TIẾP THEO ➔' : 'XEM KẾT QUẢ TỔNG QUAN'}
-                                </button>
-                            )}
-                        </div>
-                    </div>
+              <div className="animate-fade-in-up text-center py-10">
+                <div className={`mx-auto w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-xl ${isPass ? 'bg-green-100 text-green-500' : 'bg-red-100 text-red-500'}`}>
+                  {isPass ? <IconAward className="w-12 h-12" /> : <IconAlertCircle className="w-12 h-12" />}
                 </div>
-            );
-        };
+                <h2 className="text-3xl font-bold mb-2 text-gray-800">
+                  {isPass ? "Chúc mừng bạn đã hoàn thành xuất sắc!" : "Cần cố gắng thêm nhé!"}
+                </h2>
+                <p className="text-xl text-gray-600 mb-8">
+                  Đúng <span className="font-bold text-blue-600">{score}</span> / {QUIZ_DATA.length} câu ({percent}%)
+                </p>
 
-        // ==========================================
-        // 7. MAIN APP WRAPPER
-        // ==========================================
-        const App = () => {
-            const [activeTab, setActiveTab] = useState('lookup');
-
-            const menu = [
-                { id: 'lookup', name: 'Tra cứu Hệ thống', icon: <Icons.Database />, desc: "Dữ liệu TT02 & CV3456" },
-                { id: 'planner', name: 'Trợ lý Giáo án', icon: <Icons.Planner />, desc: "Mẫu chuẩn CV2345/CV5512" },
-                { id: 'quiz', name: 'Đấu trường Đánh giá', icon: <Icons.Quiz />, desc: "50 câu hỏi & Ôn tập sai" }
-            ];
-
-            return (
-                <div className="flex w-full h-full">
-                    {/* Sidebar Professional */}
-                    <nav className="w-80 bg-white/90 backdrop-blur-xl border-r border-slate-200/60 flex flex-col z-20 shadow-soft">
-                        <div className="p-8 border-b border-slate-100 bg-transparent">
-                            <div className="w-14 h-14 bg-gradient-to-br from-edu-500 to-edu-700 rounded-2xl flex items-center justify-center text-white mb-5 shadow-lg shadow-edu-500/30 border border-edu-400">
-                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                            </div>
-                            <h1 className="font-black text-2xl text-slate-800 leading-tight tracking-tight">Hệ Sinh Thái<br/><span className="text-edu-600 text-[15px] font-black uppercase tracking-widest mt-1 block drop-shadow-sm">Năng Lực Số TT02</span></h1>
-                        </div>
-
-                        <div className="flex-1 p-5 space-y-3 overflow-y-auto custom-scrollbar">
-                            <div className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3 px-3">Phân hệ chức năng</div>
-                            {menu.map(m => (
-                                <button key={m.id} onClick={() => setActiveTab(m.id)} className={`w-full text-left p-4 rounded-2xl transition-all flex items-center gap-4 border-2 ${activeTab === m.id ? 'bg-white border-edu-200 shadow-md transform -translate-y-0.5' : 'border-transparent hover:bg-white/50 hover:border-slate-200'}`}>
-                                    <div className={`p-2.5 rounded-xl transition-colors ${activeTab === m.id ? 'bg-edu-600 text-white shadow-lg shadow-edu-500/30' : 'bg-slate-100 text-slate-500'}`}>{m.icon}</div>
-                                    <div>
-                                        <div className={`font-black text-[15px] ${activeTab === m.id ? 'text-edu-800' : 'text-slate-600'}`}>{m.name}</div>
-                                        <div className={`text-xs font-bold mt-1 ${activeTab === m.id ? 'text-edu-600/80' : 'text-slate-400'}`}>{m.desc}</div>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                        
-                        <div className="p-5 border-t border-slate-100 text-center bg-transparent flex flex-col items-center">
-                            <div className="w-full h-px bg-slate-200 mb-3"></div>
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Bộ Giáo Dục & Đào Tạo</p>
-                            <p className="text-[10px] text-edu-600 font-black mt-1 bg-edu-50 px-3 py-1 rounded-full">Version 5.0 - Master/Detail</p>
-                        </div>
-                    </nav>
-
-                    {/* Main Content Area */}
-                    <div className="flex-1 flex flex-col relative h-full">
-                        {/* Header Banner */}
-                        <header className="px-8 py-6 bg-white/80 backdrop-blur-md border-b border-slate-200/60 flex justify-between items-center z-10 flex-shrink-0 shadow-sm">
-                            <div className="animate-slide-in">
-                                <h2 className="text-3xl font-black text-slate-800 tracking-tight drop-shadow-sm">
-                                    {activeTab === 'lookup' && "Cơ sở Dữ liệu & Từ điển TT02"}
-                                    {activeTab === 'planner' && "Trợ lý Kế hoạch Bài dạy Tích hợp"}
-                                    {activeTab === 'quiz' && "Đấu trường Đánh giá Năng lực"}
-                                </h2>
-                                <p className="text-sm font-bold text-edu-600 mt-2 flex items-center gap-2">
-                                    <span className="w-2.5 h-2.5 bg-edu-500 rounded-sm inline-block shadow-sm shadow-edu-500/50"></span> 
-                                    {activeTab === 'lookup' && "Chuẩn hoá từ Thông tư 02 & Công văn 3456"}
-                                    {activeTab === 'planner' && "Công cụ hỗ trợ tối ưu hoá hiệu suất làm việc cho giáo viên"}
-                                    {activeTab === 'quiz' && "Đồng hành phát triển năng lực số toàn diện"}
-                                </p>
-                            </div>
-                        </header>
-
-                        <main className="flex-1 p-6 lg:p-8 overflow-hidden z-10 relative">
-                            {/* Decorative background gradients */}
-                            <div className="absolute top-0 right-0 w-96 h-96 bg-edu-100 rounded-full blur-[80px] opacity-60 -z-10 pointer-events-none transform translate-x-1/3 -translate-y-1/3"></div>
-                            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-50 rounded-full blur-[100px] opacity-60 -z-10 pointer-events-none transform -translate-x-1/3 translate-y-1/3"></div>
-                            
-                            {activeTab === 'lookup' && <LookupModule />}
-                            {activeTab === 'planner' && <PlannerModule />}
-                            {activeTab === 'quiz' && <QuizModule />}
-                        </main>
-                    </div>
+                <div className="flex justify-center gap-4">
+                  <button onClick={restart} className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition flex items-center gap-2">
+                    <IconRefreshCcw className="w-5 h-5"/> Làm lại từ đầu
+                  </button>
+                  {wrongAnswers.length > 0 && (
+                    <button onClick={startReview} className="px-6 py-3 bg-rose-100 text-rose-700 rounded-xl font-medium hover:bg-rose-200 transition flex items-center gap-2">
+                      <IconPlay className="w-5 h-5"/> Ôn tập {wrongAnswers.length} câu sai
+                    </button>
+                  )}
                 </div>
+              </div>
             );
-        };
+          }
+
+          return (
+            <div className="animate-fade-in-up max-w-3xl mx-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  {reviewMode ? <span className="text-rose-600">Chế độ Ôn lỗi sai</span> : <span>Bài Kiểm tra Thông tư 02</span>}
+                </h2>
+                <span className="bg-gray-100 text-gray-600 px-4 py-1 rounded-full font-medium text-sm">
+                  Câu {currentQ + 1} / {questions.length}
+                </span>
+              </div>
+
+              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-200 mb-6 relative overflow-hidden">
+                {/* Progress bar */}
+                <div className="absolute top-0 left-0 h-1 bg-gray-100 w-full">
+                  <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${((currentQ + 1) / questions.length) * 100}%` }}></div>
+                </div>
+                
+                <h3 className="text-lg font-semibold text-gray-800 mb-6 mt-2 leading-relaxed">
+                  {q.q}
+                </h3>
+                
+                <div className="space-y-3">
+                  {q.options.map((opt, index) => {
+                    let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 font-medium ";
+                    
+                    if (!isAnswered) {
+                      btnClass += "border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-700";
+                    } else {
+                      if (index === q.ans) {
+                        btnClass += "border-green-500 bg-green-50 text-green-800 shadow-md transform scale-[1.01]"; // Correct
+                      } else if (index === selectedAns) {
+                        btnClass += "border-red-500 bg-red-50 text-red-800"; // Wrong selected
+                      } else {
+                        btnClass += "border-gray-100 bg-gray-50 text-gray-400 opacity-50"; // Others
+                      }
+                    }
+
+                    return (
+                      <button 
+                        key={index} 
+                        onClick={() => handleAnswer(index)}
+                        className={btnClass}
+                        disabled={isAnswered}
+                      >
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Feedback Area */}
+                {isAnswered && (
+                  <div className={`mt-6 p-4 rounded-xl border ${selectedAns === q.ans ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} animate-fade-in-up`}>
+                    <p className={`font-bold mb-1 ${selectedAns === q.ans ? 'text-green-700' : 'text-red-700'}`}>
+                      {selectedAns === q.ans ? '🎉 Chính xác!' : '❌ Rất tiếc, câu trả lời chưa đúng.'}
+                    </p>
+                    <p className="text-gray-700 text-sm"><strong>Giải thích:</strong> {q.exp}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end">
+                <button 
+                  onClick={handleNext}
+                  disabled={!isAnswered}
+                  className={`px-8 py-3 rounded-xl font-semibold transition-all ${
+                    isAnswered 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {currentQ < questions.length - 1 ? 'Câu tiếp theo ➔' : 'Xem kết quả chung cuộc'}
+                </button>
+              </div>
+            </div>
+          );
+        }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
